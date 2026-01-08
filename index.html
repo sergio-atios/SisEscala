@@ -1,0 +1,3145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SisEscala - Sistema de Escalas de Pessoas</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Biblioteca XLSX para exportação -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg-main: #0f0f1a;
+            --bg-card: #1a1a2e;
+            --bg-elevated: #252538;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border: rgba(255, 255, 255, 0.06);
+            --glow: 0 0 30px rgba(99, 102, 241, 0.3);
+            --color-vibrant-orange: #ff7e5f;
+            --color-vibrant-purple: #9333ea;
+            --color-vibrant-cyan: #06b6d4;
+            --color-dark-bg: #1a202c;
+            --color-dark-card: #2d3748;
+            --color-mint-green: #34d399;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background Premium com Mesh Gradient */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%);
+            animation: mesh-move 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes mesh-move {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(5%, -5%) rotate(3deg); }
+            66% { transform: translate(-5%, 5%) rotate(-3deg); }
+        }
+
+        /* Grid Decorativo */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #app {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Cards Glassmorphism Premium */
+        .card-neobrutal {
+            background: rgba(26, 26, 46, 0.7);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            box-shadow: 
+                0 25px 70px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 2rem;
+        }
+
+        .card-neobrutal:hover {
+            transform: translateY(-6px);
+            box-shadow: 
+                0 35px 90px rgba(0, 0, 0, 0.6),
+                0 0 40px rgba(99, 102, 241, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        
+        /* Inputs Premium */
+        .input-neobrutal {
+            background: rgba(255, 255, 255, 0.04);
+            border: 2px solid var(--border);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 18px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            font-size: 15px;
+            font-weight: 500;
+            font-family: inherit;
+        }
+        
+        .input-neobrutal:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15), 0 8px 24px rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .input-neobrutal::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.6;
+        }
+
+        /* Botões Premium com Shimmer */
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            background-size: 200% 200%;
+            color: white;
+            padding: 16px 36px;
+            border-radius: 18px;
+            font-weight: 800;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 
+                0 12px 35px rgba(99, 102, 241, 0.4),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+                inset 0 2px 0 rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            animation: gradient-shift 3s ease infinite;
+        }
+
+        @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 
+                0 20px 50px rgba(99, 102, 241, 0.5),
+                0 0 40px rgba(236, 72, 153, 0.3),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.3),
+                inset 0 2px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        /* Navegação Premium */
+        .nav-circle {
+            width: 75px;
+            height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 2px solid var(--border);
+            backdrop-filter: blur(10px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-circle::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .nav-circle svg {
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+        
+        .nav-circle.active {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            box-shadow: 
+                0 0 40px rgba(99, 102, 241, 0.6),
+                0 8px 30px rgba(236, 72, 153, 0.4);
+            border-color: transparent;
+            transform: translateY(-4px);
+        }
+
+        .nav-circle.active::before {
+            opacity: 1;
+        }
+
+        .nav-circle.active svg {
+            transform: scale(1.1);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        .nav-circle:not(.active):hover {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.5);
+            transform: translateY(-6px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .nav-circle:not(.active):hover svg {
+            transform: scale(1.15);
+        }
+
+        /* Scrollbar Premium */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            border: 2px solid var(--bg-main);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #6366f1, #ec4899);
+            border-radius: 10px;
+            border: 2px solid var(--bg-main);
+            transition: all 0.3s;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #8b5cf6, #f472b6);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Animações Suaves */
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px);
+                filter: blur(10px);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0);
+                filter: blur(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Tags Premium */
+        .pessoa-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1.5px solid rgba(99, 102, 241, 0.4);
+            padding: 10px 18px;
+            border-radius: 14px;
+            margin: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #a5b4fc;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+        }
+
+        .pessoa-tag:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(139, 92, 246, 0.25));
+            border-color: rgba(99, 102, 241, 0.6);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        .pessoa-tag button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pessoa-tag button:hover {
+            background: rgba(239, 68, 68, 0.4);
+            border-color: rgba(239, 68, 68, 0.5);
+            transform: scale(1.15) rotate(90deg);
+        }
+
+        /* Tabelas Premium */
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        table th {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
+            border: 1px solid var(--border);
+            padding: 18px 20px;
+            text-align: left;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 13px;
+            color: #a5b4fc;
+        }
+
+        table td {
+            border: 1px solid var(--border);
+            padding: 18px 20px;
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+        }
+
+        .escala-linha:hover td {
+            background: rgba(99, 102, 241, 0.12);
+            transform: scale(1.005);
+        }
+
+        .edit-cell {
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .edit-cell::after {
+            content: '✏️';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%) scale(0);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 14px;
+        }
+
+        .edit-cell:hover {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2)) !important;
+            color: white;
+            font-weight: 700;
+            box-shadow: inset 0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .edit-cell:hover::after {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+        }
+
+        /* Lista de Seleção Múltipla Premium */
+        .pessoa-selecao-item {
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 12px;
+            margin: 4px 0;
+            font-weight: 500;
+        }
+
+        .pessoa-selecao-item:hover {
+            background: rgba(99, 102, 241, 0.15);
+            transform: translateX(8px);
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .pessoa-selecao-item.selecionado {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.25), rgba(236, 72, 153, 0.25));
+            font-weight: 800;
+            border-left: 4px solid var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .pessoa-selecao-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Selects/Dropdowns Premium */
+        select.input-neobrutal {
+            background: rgba(26, 26, 46, 0.95);
+            color: white;
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 45px;
+        }
+
+        select.input-neobrutal option {
+            background: #1a1a2e;
+            color: white;
+            padding: 12px;
+            font-weight: 500;
+        }
+
+        select.input-neobrutal option:hover,
+        select.input-neobrutal option:checked {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+            color: white;
+        }
+
+        /* Textarea Premium */
+        textarea.input-neobrutal {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="relative z-10 w-full max-w-7xl mx-auto p-4 sm:p-8 space-y-8">
+        <!-- HEADER -->
+        <header class="flex justify-between items-center p-6 card-neobrutal bg-opacity-70 backdrop-blur-sm">
+            <div class="flex items-center space-x-4">
+                <div class="orb-3d w-10 h-10 flex items-center justify-center bg-purple-600">
+                    <i data-lucide="calendar-check" class="text-white w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">SisEscala</h1>
+                    <p class="text-sm text-gray-400">Sistema de Escalas de Pessoas</p>
+                </div>
+            </div>
+            
+            <div class="hidden sm:flex items-center space-x-2 p-2 rounded-full bg-gray-800 border border-cyan-500">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <span class="text-xs text-gray-300 pr-2">Salvamento Automático</span>
+            </div>
+        </header>
+
+        <!-- NAVEGAÇÃO -->
+        <nav class="flex justify-center space-x-8 py-4">
+            <div class="nav-item flex flex-col items-center space-y-1 cursor-pointer" data-section="nova-escala">
+                <div class="nav-circle active">
+                    <i data-lucide="calendar-plus" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-xs font-medium text-white">Nova Escala</span>
+            </div>
+            <div class="nav-item flex flex-col items-center space-y-1 cursor-pointer" data-section="escalas-salvas">
+                <div class="nav-circle">
+                    <i data-lucide="folder-open" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-xs font-medium text-gray-400">Escalas Salvas</span>
+            </div>
+            <div class="nav-item flex flex-col items-center space-y-1 cursor-pointer" data-section="cadastros">
+                <div class="nav-circle">
+                    <i data-lucide="users" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-xs font-medium text-gray-400">Cadastros</span>
+            </div>
+            <div class="nav-item flex flex-col items-center space-y-1 cursor-pointer" data-section="configuracoes">
+                <div class="nav-circle">
+                    <i data-lucide="settings" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-xs font-medium text-gray-400">Config</span>
+            </div>
+        </nav>
+
+        <!-- SEÇÃO: CADASTROS -->
+        <section id="cadastros" class="hidden fade-in">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Cadastro de Pessoas -->
+                <div class="p-8 card-neobrutal space-y-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <i data-lucide="user-plus" class="w-6 h-6 mr-2 text-green-400"></i>
+                        <span id="tituloPessoas">Cadastro de Pessoas</span>
+                    </h2>
+                    
+                    <div class="p-4 bg-green-900/20 border border-green-600 rounded-lg">
+                        <p class="text-sm text-gray-300 mb-2">Cadastre aqui todas as pessoas que participarão das escalas. Isso evita erros de digitação e facilita o uso em múltiplas funções.</p>
+                        <p class="text-xs text-cyan-400">💡 Dica: Você pode colar uma lista completa! Separe por vírgula, ponto e vírgula ou quebra de linha. Use Ctrl+Enter para adicionar rapidamente.</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Nome da Pessoa (ou lista de nomes)</label>
+                            <div class="space-y-2">
+                                <textarea id="nomePessoa" class="input-neobrutal resize-none" rows="3" placeholder="Digite um nome ou cole uma lista completa&#10;"></textarea>
+                                <button onclick="adicionarPessoa()" class="btn-primary text-white w-full">
+                                    ➕ Adicionar Pessoa(s)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-600 pt-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-medium text-gray-300" id="tituloListaPessoas">Pessoas Cadastradas (0)</h3>
+                            <button onclick="mostrarExemploImportacao()" class="text-xs text-cyan-400 hover:text-cyan-300">
+                                ❓ Como importar lista?
+                            </button>
+                        </div>
+                        <div id="listaPessoasCadastradas" class="space-y-2 max-h-96 overflow-y-auto"></div>
+                    </div>
+                </div>
+
+                <!-- Cadastro de Funções -->
+                <div class="p-8 card-neobrutal space-y-6">
+                    <h2 class="text-2xl font-bold text-white flex items-center">
+                        <i data-lucide="briefcase" class="w-6 h-6 mr-2 text-cyan-400"></i>
+                        Cadastro de Funções
+                    </h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Nome da Função</label>
+                            <input type="text" id="nomeFuncao" class="input-neobrutal" placeholder="Ex: Presidente, Orador, etc.">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">Selecionar Pessoas</label>
+                            <div class="p-4 bg-cyan-900/20 border border-cyan-600 rounded-lg">
+                                <p class="text-xs text-gray-400 mb-3">Selecione uma ou múltiplas pessoas (Ctrl+Clique para múltiplos):</p>
+                                
+                                <!-- Busca rápida -->
+                                <div class="mb-3">
+                                    <input type="text" id="buscaPessoaFuncao" class="input-neobrutal text-sm" placeholder="🔍 Digite para filtrar pessoas...">
+                                </div>
+                                
+                                <!-- Lista de seleção múltipla -->
+                                <div id="listaSelecionavelPessoas" class="mb-3 border border-cyan-700 rounded bg-gray-800 max-h-48 overflow-y-auto">
+                                    <!-- Preenchido dinamicamente -->
+                                </div>
+                                
+                                <div class="flex gap-2">
+                                    <button onclick="adicionarPessoasSelecionadas()" class="btn-primary bg-cyan-600 hover:bg-cyan-700 text-white flex-1 text-sm">
+                                        ➕ Adicionar Selecionadas
+                                    </button>
+                                    <button onclick="selecionarTodasPessoas()" class="btn-primary bg-purple-600 hover:bg-purple-700 text-white px-4 text-sm">
+                                        ✓ Todas
+                                    </button>
+                                </div>
+                                
+                                <div class="mt-3 border-t border-cyan-700 pt-3">
+                                    <p class="text-xs text-gray-400 mb-2">Ou digite um novo nome:</p>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="inputNovaPessoaFuncao" class="input-neobrutal flex-1 text-sm" placeholder="Nome novo">
+                                        <button onclick="adicionarPessoaNaFuncao('input')" class="btn-primary bg-green-600 hover:bg-green-700 text-white px-4 text-sm">
+                                            ➕ Novo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="listaPessoasFuncao" class="mt-3"></div>
+                        </div>
+
+                        <button onclick="salvarFuncao()" class="btn-primary w-full text-white">
+                            💾 Salvar Função
+                        </button>
+                    </div>
+
+                    <div class="border-t border-gray-600 pt-4">
+                        <h3 class="font-medium text-gray-300 mb-3">Funções Cadastradas</h3>
+                        <div id="listaFuncoes" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: NOVA ESCALA -->
+        <section id="nova-escala" class="fade-in">
+            <div class="p-8 card-neobrutal">
+                <h2 class="text-3xl font-bold text-white mb-6 flex items-center">
+                    <i data-lucide="calendar-plus" class="w-8 h-8 mr-3 text-purple-400"></i>
+                    Gerar Nova Escala
+                </h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Configurações Básicas -->
+                    <div class="space-y-6">
+                        <div class="p-6 bg-cyan-900/20 border border-cyan-600 rounded-lg">
+                            <h3 class="text-lg font-semibold text-cyan-400 mb-4">📅 Período e Periodicidade</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300 mb-2">Data Início</label>
+                                        <input type="date" id="dataInicio" class="input-neobrutal text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-300 mb-2">Data Fim</label>
+                                        <input type="date" id="dataFim" class="input-neobrutal text-sm">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Periodicidade</label>
+                                    <select id="periodicidade" class="input-neobrutal" onchange="ajustarPeriodicidade()">
+                                        <option value="">Selecione...</option>
+                                        <option value="diario">Diário</option>
+                                        <option value="semanal">Semanal</option>
+                                        <option value="mensal">Mensal</option>
+                                    </select>
+                                </div>
+
+                                <div id="opcoesSemanal" class="hidden">
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Dia da Semana</label>
+                                    <select id="diaSemana" class="input-neobrutal">
+                                        <option value="0">Domingo</option>
+                                        <option value="1">Segunda-feira</option>
+                                        <option value="2">Terça-feira</option>
+                                        <option value="3">Quarta-feira</option>
+                                        <option value="4">Quinta-feira</option>
+                                        <option value="5">Sexta-feira</option>
+                                        <option value="6">Sábado</option>
+                                    </select>
+                                </div>
+
+                                <div id="opcoesMensal" class="hidden">
+                                    <label class="block text-sm font-medium text-gray-300 mb-2">Dia do Mês</label>
+                                    <input type="number" id="diaMes" class="input-neobrutal" min="1" max="31" placeholder="1-31">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 bg-yellow-900/20 border border-yellow-600 rounded-lg">
+                            <h3 class="text-lg font-semibold text-yellow-400 mb-4">🚫 Datas Excluídas</h3>
+                            <p class="text-sm text-gray-300 mb-3">Adicione datas que não terão designações</p>
+                            
+                            <div class="flex gap-2">
+                                <input type="date" id="dataExcluir" class="input-neobrutal flex-1 text-sm">
+                                <button onclick="adicionarDataExcluida()" class="btn-primary text-white px-4">
+                                    ➕
+                                </button>
+                            </div>
+                            <div id="datasExcluidas" class="mt-3 space-y-1"></div>
+                        </div>
+                    </div>
+
+                    <!-- Funções e Conflitos -->
+                    <div class="space-y-6">
+                        <div class="p-6 bg-purple-900/20 border border-purple-600 rounded-lg">
+                            <h3 class="text-lg font-semibold text-purple-400 mb-4">📋 Funções na Escala</h3>
+                            <p class="text-sm text-gray-300 mb-3">Selecione as funções que farão parte da escala</p>
+                            
+                            <div id="selecaoFuncoes" class="space-y-2"></div>
+                        </div>
+
+                        <div class="p-6 bg-orange-900/20 border border-orange-600 rounded-lg">
+                            <h3 class="text-lg font-semibold text-orange-400 mb-4">⚠️ Funções que Podem Conflitar</h3>
+                            <p class="text-sm text-gray-300 mb-3">Marque as combinações onde a mesma pessoa pode ter ambas funções na mesma data</p>
+                            
+                            <div id="conflitosPermitidos" class="space-y-2"></div>
+                        </div>
+
+                        <div class="p-6 bg-green-900/20 border border-green-600 rounded-lg">
+                            <h3 class="text-lg font-semibold text-green-400 mb-4">📌 Colunas Fixas</h3>
+                            <p class="text-sm text-gray-300 mb-3">Adicione colunas que não serão distribuídas automaticamente (ex: Oradores convidados)</p>
+                            
+                            <div class="flex gap-2 mb-3">
+                                <input type="text" id="nomeColunaFixa" class="input-neobrutal flex-1 text-sm" placeholder="Nome da coluna (ex: Orador Convidado)">
+                                <button onclick="adicionarColunaFixa()" class="btn-primary text-white px-4">
+                                    ➕
+                                </button>
+                            </div>
+                            <div id="listaColunasFixas" class="space-y-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 justify-center">
+                    <button onclick="gerarDatasEColunasFixas()" class="btn-primary text-white text-lg px-8">
+                        📅 Gerar Datas e Colunas Fixas
+                    </button>
+                </div>
+                
+                <div id="areaPreEscala" class="hidden mt-6 p-6 bg-yellow-900/20 border border-yellow-600 rounded-lg">
+                    <h4 class="text-lg font-semibold text-yellow-400 mb-3">⚠️ Próximo Passo</h4>
+                    <p class="text-gray-300 mb-4">As datas foram geradas. Agora você pode:</p>
+                    <div class="flex gap-4">
+                        <button onclick="preencherColunasFixas()" class="btn-primary bg-cyan-600 hover:bg-cyan-700 text-white flex-1">
+                            📝 Preencher Colunas Fixas Primeiro
+                        </button>
+                        <button onclick="gerarEscalaCompletar()" class="btn-primary bg-purple-600 hover:bg-purple-700 text-white flex-1">
+                            🎯 Gerar Escala Agora
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resultado da Escala -->
+            <div id="resultadoEscala" class="hidden mt-8">
+                <div class="p-8 card-neobrutal">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-white">📊 Escala Gerada</h3>
+                        <div class="flex gap-3">
+                            <button onclick="salvarEscalaGerada()" class="btn-primary text-white">
+                                💾 Salvar Escala
+                            </button>
+                            <button onclick="exportarExcel()" class="btn-primary bg-green-600 hover:bg-green-700 text-white">
+                                📥 Exportar Excel
+                            </button>
+                            <button onclick="exportarArquivosIndividuais()" class="btn-primary bg-purple-600 hover:bg-purple-700 text-white">
+                                📄 Arquivos Individuais
+                            </button>
+                        </div>
+                    </div>
+                    <div id="tabelaEscala" class="overflow-x-auto"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: ESCALAS SALVAS -->
+        <section id="escalas-salvas" class="hidden fade-in">
+            <div class="p-8 card-neobrutal">
+                <h2 class="text-3xl font-bold text-white mb-6 flex items-center">
+                    <i data-lucide="folder-open" class="w-8 h-8 mr-3 text-orange-400"></i>
+                    Escalas Salvas
+                </h2>
+                
+                <div id="listaEscalasSalvas">
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📂</div>
+                        <p class="text-gray-400">Nenhuma escala salva ainda</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualização/Edição de Escala -->
+            <div id="visualizarEscala" class="hidden mt-8">
+                <div class="p-8 card-neobrutal">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-white" id="tituloEscalaVisualizada"></h3>
+                        <div class="flex gap-3">
+                            <button onclick="voltarListaEscalas()" class="btn-primary bg-gray-600 hover:bg-gray-700 text-white">
+                                ← Voltar
+                            </button>
+                            <button onclick="exportarEscalaSalva()" class="btn-primary bg-green-600 hover:bg-green-700 text-white">
+                                📥 Exportar Excel
+                            </button>
+                            <button onclick="exportarArquivosIndividuaisSalva()" class="btn-primary bg-purple-600 hover:bg-purple-700 text-white">
+                                📄 Arquivos Individuais
+                            </button>
+                            <button onclick="deletarEscalaSalva()" class="btn-primary text-white">
+                                🗑️ Deletar
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6 p-4 bg-cyan-900/20 border border-cyan-600 rounded-lg">
+                        <h4 class="text-lg font-semibold text-cyan-400 mb-3">🛠️ Opções de Edição</h4>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                            <button onclick="modoEdicaoLivre()" class="btn-primary bg-blue-600 hover:bg-blue-700 text-white text-sm py-2">
+                                ✏️ Edição Livre
+                            </button>
+                            <button onclick="regenerarAPartirDe()" class="btn-primary bg-purple-600 hover:bg-purple-700 text-white text-sm py-2">
+                                🔄 Regenerar à Partir De...
+                            </button>
+                            <button onclick="regenerarTudo()" class="btn-primary bg-orange-600 hover:bg-orange-700 text-white text-sm py-2">
+                                🔄 Regenerar Tudo
+                            </button>
+                            <button onclick="adicionarPessoaNaEscala()" class="btn-primary bg-green-600 hover:bg-green-700 text-white text-sm py-2">
+                                ➕ Adicionar Pessoa
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="tabelaEscalaSalva" class="overflow-x-auto"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: CONFIGURAÇÕES -->
+        <section id="configuracoes" class="hidden fade-in">
+            <div class="p-6 card-neobrutal mb-6">
+                <h3 class="text-xl font-bold text-white mb-4">💾 Backup e Restauração</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <button onclick="exportarBackup()" class="btn-primary bg-cyan-600 hover:bg-cyan-700 text-white">
+                        💾 Fazer Backup
+                    </button>
+                    <label class="btn-primary text-center cursor-pointer" style="background-color: #51fc90; color: #242422; box-shadow: 0 8px 15px rgba(81, 252, 144, 0.4);">
+                        📁 Restaurar Backup
+                        <input type="file" id="importBackup" accept=".json" style="display: none;" onchange="importarBackup(event)">
+                    </label>
+                    <button onclick="limparTodosDados()" class="btn-primary text-white">
+                        🗑️ Limpar Tudo
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-8 card-neobrutal">
+                <h3 class="text-2xl font-bold text-white mb-6">ℹ️ Sobre o Sistema</h3>
+                <div class="space-y-4 text-gray-300">
+                    <p><strong>SisEscala</strong> - Sistema de Escalas de Pessoas v1.0</p>
+                    <p>Sistema para gerenciar escalas de designações de forma automática e equilibrada.</p>
+                    
+                    <div class="mt-6 p-4 bg-cyan-900/20 border border-cyan-600 rounded-lg">
+                        <h4 class="font-semibold text-cyan-400 mb-2">📖 Como Usar:</h4>
+                        <ol class="list-decimal list-inside space-y-2 text-sm">
+                            <li>Cadastre as funções e suas respectivas pessoas</li>
+                            <li>Vá em "Nova Escala" e configure período, periodicidade e datas excluídas</li>
+                            <li>Selecione as funções que farão parte da escala</li>
+                            <li>Marque as funções que podem conflitar (mesma pessoa em múltiplas funções)</li>
+                            <li>Clique em "Gerar Escala"</li>
+                            <li>Salve a escala para poder editá-la depois</li>
+                            <li>Exporte para Excel quando necessário</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-500 text-sm py-6">
+            <p>SisEscala - Sistema de Escalas de Pessoas © 2025</p>
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // ===== VARIÁVEIS GLOBAIS =====
+        let funcoes = [];
+        let pessoasTemporarias = [];
+        let datasExcluidas = [];
+        let funcoesNaEscala = [];
+        let conflitosPermitidos = [];
+        let escalaAtual = null;
+        let escalas = [];
+        let escalaVisualizandoId = null;
+        let colunasFixas = []; // Para colunas fixas adicionadas manualmente
+        let pessoasCadastradas = []; // Lista global de todas as pessoas
+
+        // ===== NAVEGAÇÃO =====
+        const sections = ['cadastros', 'nova-escala', 'escalas-salvas', 'configuracoes'];
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const targetSection = this.getAttribute('data-section');
+                mostrarTela(targetSection);
+            });
+        });
+
+        function mostrarTela(tela) {
+            navItems.forEach(nav => {
+                const circle = nav.querySelector('.nav-circle');
+                const text = nav.querySelector('span');
+                
+                circle.classList.remove('active');
+                text.classList.remove('text-white');
+                text.classList.add('text-gray-400');
+            });
+
+            const activeNav = document.querySelector(`[data-section="${tela}"]`);
+            if (activeNav) {
+                const circle = activeNav.querySelector('.nav-circle');
+                const text = activeNav.querySelector('span');
+                
+                circle.classList.add('active');
+                text.classList.remove('text-gray-400');
+                text.classList.add('text-white');
+            }
+
+            sections.forEach(id => {
+                const sectionElement = document.getElementById(id);
+                if (sectionElement) {
+                    if (id === tela) {
+                        sectionElement.classList.remove('hidden');
+                        sectionElement.classList.add('fade-in');
+                    } else {
+                        sectionElement.classList.add('hidden');
+                    }
+                }
+            });
+
+            if (tela === 'nova-escala') {
+                atualizarSelecaoFuncoes();
+            }
+            
+            if (tela === 'escalas-salvas') {
+                atualizarListaEscalasSalvas();
+            }
+            
+            if (tela === 'cadastros') {
+                atualizarListaPessoasCadastradas();
+                atualizarListaSelecionavelPessoas();
+            }
+            
+            setTimeout(() => {
+                lucide.createIcons();
+            }, 100);
+        }
+
+        // ===== INICIALIZAÇÃO =====
+        document.addEventListener('DOMContentLoaded', function() {
+            carregarDados();
+            atualizarListaPessoasCadastradas();
+            atualizarListaFuncoes();
+            atualizarListaSelecionavelPessoas();
+            
+            // Garantir que abre em "Nova Escala"
+            mostrarTela('nova-escala');
+            
+            // Configurar eventos de Enter
+            const nomePessoaInput = document.getElementById('nomePessoa');
+            if (nomePessoaInput) {
+                nomePessoaInput.addEventListener('keypress', function(e) {
+                    // Ctrl+Enter ou Cmd+Enter para adicionar
+                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                        e.preventDefault();
+                        adicionarPessoa();
+                    }
+                });
+            }
+            
+            const inputNovaPessoaFuncao = document.getElementById('inputNovaPessoaFuncao');
+            if (inputNovaPessoaFuncao) {
+                inputNovaPessoaFuncao.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        adicionarPessoaNaFuncao('input');
+                    }
+                });
+            }
+            
+            // Configurar busca de pessoas
+            const buscaPessoaFuncao = document.getElementById('buscaPessoaFuncao');
+            if (buscaPessoaFuncao) {
+                buscaPessoaFuncao.addEventListener('input', function() {
+                    atualizarListaSelecionavelPessoas(this.value);
+                });
+                
+                buscaPessoaFuncao.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        adicionarPessoasSelecionadas();
+                    }
+                });
+            }
+            
+            // Configurar Enter no campo de data excluída
+            const dataExcluir = document.getElementById('dataExcluir');
+            if (dataExcluir) {
+                dataExcluir.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        adicionarDataExcluida();
+                    }
+                });
+            }
+            
+            lucide.createIcons();
+        });
+
+        function carregarDados() {
+            try {
+                funcoes = JSON.parse(localStorage.getItem('sisEscala_funcoes') || '[]');
+                escalas = JSON.parse(localStorage.getItem('sisEscala_escalas') || '[]');
+                pessoasCadastradas = JSON.parse(localStorage.getItem('sisEscala_pessoas') || '[]');
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
+        }
+
+        function salvarDados() {
+            localStorage.setItem('sisEscala_funcoes', JSON.stringify(funcoes));
+            localStorage.setItem('sisEscala_escalas', JSON.stringify(escalas));
+            localStorage.setItem('sisEscala_pessoas', JSON.stringify(pessoasCadastradas));
+        }
+
+        // ===== CADASTRO DE PESSOAS =====
+        function adicionarPessoa() {
+            const input = document.getElementById('nomePessoa').value.trim();
+            
+            if (!input) {
+                return; // Retorna silenciosamente se o campo estiver vazio
+            }
+            
+            // Detectar se há múltiplos nomes (separados por vírgula, ponto e vírgula ou quebra de linha)
+            let nomes = [];
+            
+            // Verificar se contém vírgula, ponto e vírgula ou quebra de linha
+            if (input.includes(',') || input.includes(';') || input.includes('\n')) {
+                // Separar por vírgula, ponto e vírgula ou quebra de linha
+                nomes = input.split(/[,;\n]+/).map(n => n.trim()).filter(n => n.length > 0);
+            } else {
+                // Apenas um nome
+                nomes = [input];
+            }
+            
+            let adicionados = 0;
+            let duplicados = 0;
+            let nomesAdicionados = [];
+            
+            nomes.forEach(nome => {
+                // Verificar duplicação
+                if (pessoasCadastradas.some(p => p.toLowerCase() === nome.toLowerCase())) {
+                    duplicados++;
+                } else {
+                    pessoasCadastradas.push(nome);
+                    nomesAdicionados.push(nome);
+                    adicionados++;
+                }
+            });
+            
+            if (adicionados > 0) {
+                pessoasCadastradas.sort();
+                salvarDados();
+                atualizarListaPessoasCadastradas();
+                atualizarListaSelecionavelPessoas();
+            }
+            
+            document.getElementById('nomePessoa').value = '';
+        }
+
+        function atualizarListaPessoasCadastradas() {
+            const container = document.getElementById('listaPessoasCadastradas');
+            container.innerHTML = '';
+            
+            if (pessoasCadastradas.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm">Nenhuma pessoa cadastrada</p>';
+            } else {
+                pessoasCadastradas.forEach(pessoa => {
+                    const div = document.createElement('div');
+                    div.className = 'flex justify-between items-center p-2 bg-gray-800 rounded text-sm hover:bg-gray-700 transition';
+                    div.innerHTML = `
+                        <span class="text-white">${pessoa}</span>
+                        <button onclick="deletarPessoa('${pessoa.replace(/'/g, "\\\'")}')" class="text-red-400 hover:text-red-300 px-2">
+                            🗑️
+                        </button>
+                    `;
+                    container.appendChild(div);
+                });
+            }
+            
+            // Atualizar contadores
+            const tituloPessoas = document.getElementById('tituloPessoas');
+            if (tituloPessoas) {
+                tituloPessoas.textContent = `Cadastro de Pessoas (${pessoasCadastradas.length})`;
+            }
+            
+            const tituloListaPessoas = document.getElementById('tituloListaPessoas');
+            if (tituloListaPessoas) {
+                tituloListaPessoas.textContent = `Pessoas Cadastradas (${pessoasCadastradas.length})`;
+            }
+        }
+
+        function mostrarExemploImportacao() {
+            const exemplos = `
+📋 COMO IMPORTAR LISTA DE PESSOAS
+
+Você pode colar uma lista de nomes de 3 formas:
+
+1️⃣ SEPARADO POR VÍRGULA:
+João Silva, Maria Santos, Pedro Costa, Ana Oliveira
+
+2️⃣ SEPARADO POR PONTO E VÍRGULA:
+João Silva; Maria Santos; Pedro Costa; Ana Oliveira
+
+3️⃣ UM NOME POR LINHA (copie do Excel):
+João Silva
+Maria Santos
+Pedro Costa
+Ana Oliveira
+
+💡 DICA: Cole a lista no campo e clique em "Adicionar Pessoa(s)" ou use Ctrl+Enter
+
+✅ O sistema automaticamente:
+• Remove nomes duplicados
+• Organiza em ordem alfabética
+• Mostra quantos foram adicionados
+            `;
+            
+            alert(exemplos);
+        }
+
+        function deletarPessoa(nome) {
+            if (confirm(`Deletar "${nome}"?\n\nAtenção: Esta pessoa será removida de todas as funções onde está cadastrada.`)) {
+                // Remover da lista global
+                pessoasCadastradas = pessoasCadastradas.filter(p => p !== nome);
+                
+                // Remover de todas as funções
+                funcoes.forEach(funcao => {
+                    funcao.pessoas = funcao.pessoas.filter(p => p !== nome);
+                });
+                
+                // Remover das pessoas temporárias se estiver lá
+                pessoasTemporarias = pessoasTemporarias.filter(p => p !== nome);
+                
+                salvarDados();
+                atualizarListaPessoasCadastradas();
+                atualizarListaFuncoes();
+                atualizarListaSelecionavelPessoas();
+                atualizarListaPessoasTemporarias();
+            }
+        }
+
+        // ===== CADASTRO DE FUNÇÕES =====
+        function atualizarListaSelecionavelPessoas(filtro = '') {
+            const container = document.getElementById('listaSelecionavelPessoas');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (pessoasCadastradas.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Nenhuma pessoa cadastrada ainda</div>';
+                return;
+            }
+            
+            const filtroLower = filtro.toLowerCase();
+            const pessoasFiltradas = pessoasCadastradas.filter(p => 
+                p.toLowerCase().includes(filtroLower)
+            );
+            
+            if (pessoasFiltradas.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-gray-400 text-sm">Nenhuma pessoa encontrada</div>';
+                return;
+            }
+            
+            pessoasFiltradas.forEach(pessoa => {
+                const div = document.createElement('div');
+                div.className = 'pessoa-selecao-item';
+                div.textContent = pessoa;
+                div.setAttribute('data-pessoa', pessoa);
+                
+                div.addEventListener('click', function(e) {
+                    if (e.ctrlKey || e.metaKey) {
+                        // Ctrl/Cmd + Clique: adicionar à seleção
+                        this.classList.toggle('selecionado');
+                    } else {
+                        // Clique simples: selecionar apenas este
+                        container.querySelectorAll('.pessoa-selecao-item').forEach(item => {
+                            item.classList.remove('selecionado');
+                        });
+                        this.classList.add('selecionado');
+                    }
+                });
+                
+                container.appendChild(div);
+            });
+        }
+
+        function selecionarTodasPessoas() {
+            const container = document.getElementById('listaSelecionavelPessoas');
+            if (!container) return;
+            
+            const itens = container.querySelectorAll('.pessoa-selecao-item');
+            itens.forEach(item => {
+                item.classList.add('selecionado');
+            });
+        }
+
+        function adicionarPessoasSelecionadas() {
+            const container = document.getElementById('listaSelecionavelPessoas');
+            if (!container) return;
+            
+            const itensSelecionados = container.querySelectorAll('.pessoa-selecao-item.selecionado');
+            
+            if (itensSelecionados.length === 0) {
+                alert('Selecione pelo menos uma pessoa!');
+                return;
+            }
+            
+            let adicionadas = 0;
+            let duplicadas = 0;
+            
+            itensSelecionados.forEach(item => {
+                const nome = item.getAttribute('data-pessoa');
+                
+                // Verificar duplicação na função
+                if (!pessoasTemporarias.some(p => p.toLowerCase() === nome.toLowerCase())) {
+                    pessoasTemporarias.push(nome);
+                    adicionadas++;
+                } else {
+                    duplicadas++;
+                }
+            });
+            
+            if (adicionadas > 0) {
+                atualizarListaPessoasTemporarias();
+            }
+            
+            // Limpar seleção
+            itensSelecionados.forEach(item => {
+                item.classList.remove('selecionado');
+            });
+            
+            // Feedback
+            if (adicionadas > 0 && duplicadas > 0) {
+                alert(`✅ ${adicionadas} pessoa(s) adicionada(s)\n⚠️ ${duplicadas} já estava(m) na função`);
+            } else if (duplicadas > 0) {
+                alert(`⚠️ Pessoa(s) já estava(m) na função`);
+            }
+        }
+
+        function adicionarPessoaNaFuncao(origem) {
+            let nome = '';
+            
+            if (origem === 'input') {
+                const input = document.getElementById('inputNovaPessoaFuncao');
+                nome = input.value.trim();
+                input.value = '';
+            }
+            
+            if (!nome) {
+                alert('Digite um nome!');
+                return;
+            }
+            
+            // Verificar duplicação na função
+            if (pessoasTemporarias.some(p => p.toLowerCase() === nome.toLowerCase())) {
+                alert('Esta pessoa já foi adicionada nesta função!');
+                return;
+            }
+            
+            // Se for um nome novo digitado, adicionar à lista global
+            if (!pessoasCadastradas.some(p => p.toLowerCase() === nome.toLowerCase())) {
+                pessoasCadastradas.push(nome);
+                pessoasCadastradas.sort();
+                salvarDados();
+                atualizarListaPessoasCadastradas();
+                atualizarListaSelecionavelPessoas();
+            }
+            
+            pessoasTemporarias.push(nome);
+            atualizarListaPessoasTemporarias();
+        }
+
+        function atualizarListaPessoasTemporarias() {
+            const container = document.getElementById('listaPessoasFuncao');
+            container.innerHTML = '';
+            
+            pessoasTemporarias.forEach((pessoa, index) => {
+                const tag = document.createElement('span');
+                tag.className = 'pessoa-tag';
+                tag.innerHTML = `
+                    ${pessoa}
+                    <button onclick="removerPessoaTemporaria(${index})">✕</button>
+                `;
+                container.appendChild(tag);
+            });
+        }
+
+        function removerPessoaTemporaria(index) {
+            pessoasTemporarias.splice(index, 1);
+            atualizarListaPessoasTemporarias();
+        }
+
+        function salvarFuncao() {
+            const nomeFuncao = document.getElementById('nomeFuncao').value.trim();
+            
+            if (!nomeFuncao) {
+                alert('Digite o nome da função!');
+                return;
+            }
+            
+            if (pessoasTemporarias.length === 0) {
+                alert('Adicione pelo menos uma pessoa!');
+                return;
+            }
+            
+            const funcao = {
+                id: Date.now(),
+                nome: nomeFuncao,
+                pessoas: pessoasTemporarias.slice()
+            };
+            
+            funcoes.push(funcao);
+            salvarDados();
+            
+            document.getElementById('nomeFuncao').value = '';
+            pessoasTemporarias = [];
+            atualizarListaPessoasTemporarias();
+            atualizarListaFuncoes();
+            atualizarTodasPessoas();
+            
+            alert('Função salva com sucesso!');
+        }
+
+        function atualizarListaFuncoes() {
+            const container = document.getElementById('listaFuncoes');
+            container.innerHTML = '';
+            
+            if (funcoes.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm">Nenhuma função cadastrada</p>';
+                return;
+            }
+            
+            funcoes.forEach(funcao => {
+                const div = document.createElement('div');
+                div.className = 'p-3 bg-gray-800 rounded-lg flex justify-between items-center';
+                div.innerHTML = `
+                    <div>
+                        <div class="font-semibold text-white">${funcao.nome}</div>
+                        <div class="text-xs text-gray-400">${funcao.pessoas.length} pessoa(s)</div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="editarFuncao(${funcao.id})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs text-white">✏️</button>
+                        <button onclick="deletarFuncao(${funcao.id})" class="px-3 py-1 rounded text-xs text-white" style="background: linear-gradient(135deg, #ff7e5f 0%, #764ba2 100%);">🗑️</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function editarFuncao(id) {
+            const funcao = funcoes.find(f => f.id === id);
+            if (!funcao) return;
+            
+            document.getElementById('nomeFuncao').value = funcao.nome;
+            pessoasTemporarias = funcao.pessoas.slice();
+            atualizarListaPessoasTemporarias();
+            
+            funcoes = funcoes.filter(f => f.id !== id);
+            salvarDados();
+            atualizarListaFuncoes();
+            atualizarTodasPessoas();
+        }
+
+        function deletarFuncao(id) {
+            const funcao = funcoes.find(f => f.id === id);
+            if (!funcao) return;
+            
+            if (confirm(`Deletar função "${funcao.nome}"?`)) {
+                funcoes = funcoes.filter(f => f.id !== id);
+                salvarDados();
+                atualizarListaFuncoes();
+            }
+        }
+
+        // ===== NOVA ESCALA =====
+        function ajustarPeriodicidade() {
+            const tipo = document.getElementById('periodicidade').value;
+            document.getElementById('opcoesSemanal').classList.add('hidden');
+            document.getElementById('opcoesMensal').classList.add('hidden');
+            
+            if (tipo === 'semanal') {
+                document.getElementById('opcoesSemanal').classList.remove('hidden');
+            } else if (tipo === 'mensal') {
+                document.getElementById('opcoesMensal').classList.remove('hidden');
+            }
+        }
+
+        function adicionarDataExcluida() {
+            const dataInput = document.getElementById('dataExcluir');
+            const data = dataInput.value;
+            
+            if (!data) return;
+            
+            if (!datasExcluidas.includes(data)) {
+                datasExcluidas.push(data);
+                dataInput.value = '';
+                atualizarListaDatasExcluidas();
+            }
+        }
+
+        function atualizarListaDatasExcluidas() {
+            const container = document.getElementById('datasExcluidas');
+            container.innerHTML = '';
+            
+            datasExcluidas.sort().forEach(data => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-2 bg-gray-800 rounded text-sm';
+                div.innerHTML = `
+                    <span class="text-white">${formatarData(data)}</span>
+                    <button onclick="removerDataExcluida('${data}')" class="text-red-400 hover:text-red-300">✕</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function removerDataExcluida(data) {
+            datasExcluidas = datasExcluidas.filter(d => d !== data);
+            atualizarListaDatasExcluidas();
+        }
+
+        function adicionarColunaFixa() {
+            const nome = document.getElementById('nomeColunaFixa').value.trim();
+            if (!nome) return;
+            
+            if (!colunasFixas.find(c => c.nome === nome)) {
+                colunasFixas.push({
+                    id: Date.now(),
+                    nome: nome
+                });
+                document.getElementById('nomeColunaFixa').value = '';
+                atualizarListaColunasFixas();
+            }
+        }
+
+        function atualizarListaColunasFixas() {
+            const container = document.getElementById('listaColunasFixas');
+            container.innerHTML = '';
+            
+            colunasFixas.forEach(coluna => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-2 bg-gray-800 rounded text-sm';
+                div.innerHTML = `
+                    <span class="text-white">${coluna.nome}</span>
+                    <button onclick="removerColunaFixa(${coluna.id})" class="text-red-400 hover:text-red-300">✕</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function removerColunaFixa(id) {
+            colunasFixas = colunasFixas.filter(c => c.id !== id);
+            atualizarListaColunasFixas();
+        }
+
+        function formatarData(dataStr) {
+            const [ano, mes, dia] = dataStr.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function atualizarSelecaoFuncoes() {
+            const container = document.getElementById('selecaoFuncoes');
+            container.innerHTML = '';
+            
+            if (funcoes.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-sm">Nenhuma função cadastrada</p>';
+                return;
+            }
+            
+            funcoes.forEach(funcao => {
+                const div = document.createElement('div');
+                div.className = 'flex items-center space-x-2';
+                div.innerHTML = `
+                    <input type="checkbox" id="funcao_${funcao.id}" value="${funcao.id}" onchange="atualizarConflitosPermitidos()">
+                    <label for="funcao_${funcao.id}" class="text-white cursor-pointer">${funcao.nome}</label>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function atualizarConflitosPermitidos() {
+            funcoesNaEscala = [];
+            funcoes.forEach(funcao => {
+                const checkbox = document.getElementById(`funcao_${funcao.id}`);
+                if (checkbox && checkbox.checked) {
+                    funcoesNaEscala.push(funcao.id);
+                }
+            });
+            
+            const container = document.getElementById('conflitosPermitidos');
+            container.innerHTML = '';
+            
+            if (funcoesNaEscala.length < 2) {
+                container.innerHTML = '<p class="text-gray-400 text-sm">Selecione pelo menos 2 funções</p>';
+                return;
+            }
+            
+            for (let i = 0; i < funcoesNaEscala.length; i++) {
+                for (let j = i + 1; j < funcoesNaEscala.length; j++) {
+                    const funcao1 = funcoes.find(f => f.id === funcoesNaEscala[i]);
+                    const funcao2 = funcoes.find(f => f.id === funcoesNaEscala[j]);
+                    
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center space-x-2';
+                    div.innerHTML = `
+                        <input type="checkbox" id="conflito_${funcao1.id}_${funcao2.id}" value="${funcao1.id}_${funcao2.id}">
+                        <label for="conflito_${funcao1.id}_${funcao2.id}" class="text-white cursor-pointer text-sm">
+                            ${funcao1.nome} + ${funcao2.nome}
+                        </label>
+                    `;
+                    container.appendChild(div);
+                }
+            }
+        }
+
+        function gerarDatasEColunasFixas() {
+            const dataInicio = document.getElementById('dataInicio').value;
+            const dataFim = document.getElementById('dataFim').value;
+            const periodicidade = document.getElementById('periodicidade').value;
+            
+            if (!dataInicio || !dataFim) {
+                alert('Preencha as datas de início e fim!');
+                return;
+            }
+            
+            if (!periodicidade) {
+                alert('Selecione a periodicidade!');
+                return;
+            }
+            
+            if (funcoesNaEscala.length === 0) {
+                alert('Selecione pelo menos uma função!');
+                return;
+            }
+            
+            conflitosPermitidos = [];
+            document.querySelectorAll('[id^="conflito_"]').forEach(checkbox => {
+                if (checkbox.checked) {
+                    const [id1, id2] = checkbox.value.split('_');
+                    conflitosPermitidos.push([parseInt(id1), parseInt(id2)]);
+                }
+            });
+            
+            const datas = gerarDatas(dataInicio, dataFim, periodicidade);
+            
+            // Verificar se há colunas fixas
+            const temColunasFixas = colunasFixas.length > 0;
+            
+            if (!temColunasFixas) {
+                // SEM colunas fixas: gerar escala completa automaticamente
+                escalaAtual = {
+                    datas: datas,
+                    distribuicao: {},
+                    funcoes: funcoesNaEscala.map(id => funcoes.find(f => f.id === id)),
+                    colunasFixas: [],
+                    dataInicio: dataInicio,
+                    dataFim: dataFim,
+                    periodicidade: periodicidade,
+                    geracaoCompleta: true
+                };
+                
+                // Distribuir pessoas diretamente
+                escalaAtual.distribuicao = distribuirPessoasComColunasFixas(
+                    datas, 
+                    funcoesNaEscala,
+                    {}
+                );
+                
+                exibirEscala(escalaAtual);
+            } else {
+                // COM colunas fixas: modo em duas etapas
+                // Criar distribuição vazia (sem pessoas designadas ainda)
+                const distribuicaoVazia = {};
+                datas.forEach(dataObj => {
+                    const data = dataObj.data;
+                    distribuicaoVazia[data] = {
+                        excluida: dataObj.excluida,
+                        pessoas: {},
+                        colunasFixas: {}
+                    };
+                });
+                
+                escalaAtual = {
+                    datas: datas,
+                    distribuicao: distribuicaoVazia,
+                    funcoes: funcoesNaEscala.map(id => funcoes.find(f => f.id === id)),
+                    colunasFixas: colunasFixas.slice(),
+                    dataInicio: dataInicio,
+                    dataFim: dataFim,
+                    periodicidade: periodicidade,
+                    geracaoCompleta: false
+                };
+                
+                exibirEscalaParcial(escalaAtual);
+                
+                // Mostrar opções
+                document.getElementById('areaPreEscala').classList.remove('hidden');
+            }
+        }
+
+        function preencherColunasFixas() {
+            // Apenas scroll para a tabela para o usuário preencher
+            document.getElementById('tabelaEscala').scrollIntoView({ behavior: 'smooth' });
+            alert('👉 Preencha as colunas fixas clicando nas células "(vazio)"\n\nQuando terminar, clique no botão "🎯 Gerar Escala Completa" abaixo da tabela.');
+        }
+
+        function gerarEscalaCompletar() {
+            if (!escalaAtual) {
+                alert('Erro: Nenhuma escala base encontrada!');
+                return;
+            }
+            
+            // Pegar pessoas já preenchidas nas colunas fixas
+            const pessoasUsadasPorData = {};
+            
+            escalaAtual.datas.forEach(dataObj => {
+                const data = dataObj.data;
+                pessoasUsadasPorData[data] = new Set();
+                
+                // Adicionar pessoas das colunas fixas
+                if (escalaAtual.colunasFixas && escalaAtual.colunasFixas.length > 0) {
+                    escalaAtual.colunasFixas.forEach(coluna => {
+                        const pessoa = escalaAtual.distribuicao[data].colunasFixas?.[coluna.id];
+                        if (pessoa && pessoa.trim() !== '') {
+                            // Verificar se essa pessoa existe em alguma função
+                            const pessoaExiste = escalaAtual.funcoes.some(funcao => 
+                                funcao.pessoas.some(p => p.toLowerCase() === pessoa.toLowerCase())
+                            );
+                            
+                            if (pessoaExiste) {
+                                pessoasUsadasPorData[data].add(pessoa);
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Agora distribuir as outras funções respeitando conflitos
+            const distribuicaoCompleta = distribuirPessoasComColunasFixas(
+                escalaAtual.datas, 
+                escalaAtual.funcoes.map(f => f.id),
+                pessoasUsadasPorData
+            );
+            
+            // Manter as colunas fixas já preenchidas
+            escalaAtual.datas.forEach(dataObj => {
+                const data = dataObj.data;
+                if (!escalaAtual.distribuicao[data].colunasFixas) {
+                    escalaAtual.distribuicao[data].colunasFixas = {};
+                }
+                distribuicaoCompleta[data].colunasFixas = escalaAtual.distribuicao[data].colunasFixas;
+            });
+            
+            escalaAtual.distribuicao = distribuicaoCompleta;
+            escalaAtual.geracaoCompleta = true;
+            
+            exibirEscala(escalaAtual);
+            
+            // Esconder área de opções
+            document.getElementById('areaPreEscala').classList.add('hidden');
+        }
+
+        function distribuirPessoasComColunasFixas(datas, funcoesIds, pessoasUsadasPorData) {
+            const distribuicao = {};
+            const contadores = {};
+            const ultimasDesignacoes = {};
+            
+            funcoesIds.forEach(funcaoId => {
+                const funcao = funcoes.find(f => f.id === funcaoId);
+                contadores[funcaoId] = {};
+                ultimasDesignacoes[funcaoId] = {};
+                funcao.pessoas.forEach(pessoa => {
+                    contadores[funcaoId][pessoa] = 0;
+                    ultimasDesignacoes[funcaoId][pessoa] = -10;
+                });
+            });
+            
+            datas.forEach((dataObj, indiceData) => {
+                const data = dataObj.data;
+                const excluida = dataObj.excluida;
+                
+                distribuicao[data] = {
+                    excluida: excluida,
+                    pessoas: {},
+                    colunasFixas: {}
+                };
+                
+                if (excluida) {
+                    return;
+                }
+                
+                // Começar com pessoas já usadas nas colunas fixas
+                const pessoasUsadasNaData = pessoasUsadasPorData[data] || new Set();
+                
+                funcoesIds.forEach(funcaoId => {
+                    const funcao = funcoes.find(f => f.id === funcaoId);
+                    const pessoasDisponiveis = funcao.pessoas.filter(pessoa => {
+                        if (pessoasUsadasNaData.has(pessoa)) {
+                            const podeConflitar = conflitosPermitidos.some(par => {
+                                const [id1, id2] = par;
+                                return (id1 === funcaoId || id2 === funcaoId);
+                            });
+                            return podeConflitar;
+                        }
+                        return true;
+                    });
+                    
+                    pessoasDisponiveis.sort((a, b) => {
+                        const contagemA = contadores[funcaoId][a];
+                        const contagemB = contadores[funcaoId][b];
+                        if (contagemA !== contagemB) return contagemA - contagemB;
+                        
+                        const ultimaA = ultimasDesignacoes[funcaoId][a];
+                        const ultimaB = ultimasDesignacoes[funcaoId][b];
+                        return ultimaA - ultimaB;
+                    });
+                    
+                    const pessoaSelecionada = pessoasDisponiveis[0];
+                    distribuicao[data].pessoas[funcaoId] = pessoaSelecionada;
+                    contadores[funcaoId][pessoaSelecionada]++;
+                    ultimasDesignacoes[funcaoId][pessoaSelecionada] = indiceData;
+                    pessoasUsadasNaData.add(pessoaSelecionada);
+                });
+            });
+            
+            return distribuicao;
+        }
+
+        function exibirEscalaParcial(escala) {
+            const container = document.getElementById('tabelaEscala');
+            
+            let html = '<table class="w-full text-sm"><thead class="bg-cyan-900/50"><tr>';
+            html += '<th class="p-3 text-left text-cyan-400 sticky left-0 bg-cyan-900/50">Data</th>';
+            
+            // Colunas fixas primeiro
+            if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                escala.colunasFixas.forEach(coluna => {
+                    html += `<th class="p-3 text-center text-green-400">📌 ${coluna.nome}</th>`;
+                });
+            }
+            
+            // Depois as funções regulares
+            escala.funcoes.forEach(funcao => {
+                html += `<th class="p-3 text-center text-cyan-400">${funcao.nome}</th>`;
+            });
+            
+            html += '</tr></thead><tbody>';
+            
+            escala.datas.forEach((dataObj, index) => {
+                const data = dataObj.data;
+                const excluida = dataObj.excluida;
+                const bgRow = index % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-800/10';
+                
+                html += `<tr class="${bgRow} escala-linha">`;
+                html += `<td class="p-3 text-white font-semibold sticky left-0 ${bgRow}">${formatarData(data)}</td>`;
+                
+                if (excluida) {
+                    const colspan = (escala.colunasFixas ? escala.colunasFixas.length : 0) + escala.funcoes.length;
+                    html += `<td colspan="${colspan}" class="p-3 text-center text-yellow-400 italic edit-cell" onclick="reativarData('${data}')">Data Excluída (clique para reativar)</td>`;
+                } else {
+                    // Colunas fixas primeiro (editáveis)
+                    if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                        escala.colunasFixas.forEach(coluna => {
+                            const valor = escala.distribuicao[data].colunasFixas?.[coluna.id] || '';
+                            html += `<td class="p-3 text-center text-green-300 edit-cell" onclick="editarColunaFixaGerada('${data}', ${coluna.id})">${valor || '(vazio)'}</td>`;
+                        });
+                    }
+                    
+                    // Funções regulares (ainda vazias)
+                    escala.funcoes.forEach(funcao => {
+                        html += `<td class="p-3 text-center text-gray-500 italic">-</td>`;
+                    });
+                }
+                
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            
+            // Adicionar botão de gerar escala completa
+            html += `
+                <div class="mt-6 p-4 bg-purple-900/20 border border-purple-600 rounded-lg">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h4 class="font-semibold text-purple-400 mb-1">Pronto para gerar a escala?</h4>
+                            <p class="text-sm text-gray-300">As colunas fixas estão preenchidas ou você quer gerar mesmo assim?</p>
+                        </div>
+                        <button onclick="gerarEscalaCompletar()" class="btn-primary bg-purple-600 hover:bg-purple-700 text-white">
+                            🎯 Gerar Escala Completa
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            document.getElementById('resultadoEscala').classList.remove('hidden');
+            
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function gerarEscala() {
+            const dataInicio = document.getElementById('dataInicio').value;
+            const dataFim = document.getElementById('dataFim').value;
+            const periodicidade = document.getElementById('periodicidade').value;
+            
+            if (!dataInicio || !dataFim) {
+                alert('Preencha as datas de início e fim!');
+                return;
+            }
+            
+            if (!periodicidade) {
+                alert('Selecione a periodicidade!');
+                return;
+            }
+            
+            if (funcoesNaEscala.length === 0) {
+                alert('Selecione pelo menos uma função!');
+                return;
+            }
+            
+            conflitosPermitidos = [];
+            document.querySelectorAll('[id^="conflito_"]').forEach(checkbox => {
+                if (checkbox.checked) {
+                    const [id1, id2] = checkbox.value.split('_');
+                    conflitosPermitidos.push([parseInt(id1), parseInt(id2)]);
+                }
+            });
+            
+            const datas = gerarDatas(dataInicio, dataFim, periodicidade);
+            const distribuicao = distribuirPessoas(datas, funcoesNaEscala);
+            
+            escalaAtual = {
+                datas: datas,
+                distribuicao: distribuicao,
+                funcoes: funcoesNaEscala.map(id => funcoes.find(f => f.id === id)),
+                colunasFixas: colunasFixas.slice(),
+                dataInicio: dataInicio,
+                dataFim: dataFim,
+                periodicidade: periodicidade
+            };
+            
+            exibirEscala(escalaAtual);
+        }
+
+        function gerarDatas(inicio, fim, periodicidade) {
+            const datas = [];
+            let dataAtual = new Date(inicio + 'T00:00:00');
+            const dataFinal = new Date(fim + 'T00:00:00');
+            
+            while (dataAtual <= dataFinal) {
+                const dataStr = dataAtual.toISOString().split('T')[0];
+                let incluir = false;
+                
+                if (periodicidade === 'diario') {
+                    incluir = true;
+                } else if (periodicidade === 'semanal') {
+                    const diaSemana = parseInt(document.getElementById('diaSemana').value);
+                    if (dataAtual.getDay() === diaSemana) {
+                        incluir = true;
+                    }
+                } else if (periodicidade === 'mensal') {
+                    const diaMes = parseInt(document.getElementById('diaMes').value);
+                    if (dataAtual.getDate() === diaMes) {
+                        incluir = true;
+                    }
+                }
+                
+                if (incluir) {
+                    datas.push({
+                        data: dataStr,
+                        excluida: datasExcluidas.includes(dataStr)
+                    });
+                }
+                
+                if (periodicidade === 'diario') {
+                    dataAtual.setDate(dataAtual.getDate() + 1);
+                } else if (periodicidade === 'semanal') {
+                    dataAtual.setDate(dataAtual.getDate() + 1);
+                } else if (periodicidade === 'mensal') {
+                    dataAtual.setDate(dataAtual.getDate() + 1);
+                }
+            }
+            
+            return datas;
+        }
+
+        function distribuirPessoas(datas, funcoesIds) {
+            const distribuicao = {};
+            const contadores = {};
+            const ultimasDesignacoes = {};
+            
+            funcoesIds.forEach(funcaoId => {
+                const funcao = funcoes.find(f => f.id === funcaoId);
+                contadores[funcaoId] = {};
+                ultimasDesignacoes[funcaoId] = {};
+                funcao.pessoas.forEach(pessoa => {
+                    contadores[funcaoId][pessoa] = 0;
+                    ultimasDesignacoes[funcaoId][pessoa] = -10;
+                });
+            });
+            
+            datas.forEach((dataObj, indiceData) => {
+                const data = dataObj.data;
+                const excluida = dataObj.excluida;
+                
+                distribuicao[data] = {
+                    excluida: excluida,
+                    pessoas: {}
+                };
+                
+                if (excluida) {
+                    return; // Não distribuir pessoas para datas excluídas
+                }
+                
+                const pessoasUsadasNaData = new Set();
+                
+                funcoesIds.forEach(funcaoId => {
+                    const funcao = funcoes.find(f => f.id === funcaoId);
+                    const pessoasDisponiveis = funcao.pessoas.filter(pessoa => {
+                        if (pessoasUsadasNaData.has(pessoa)) {
+                            const podeConflitar = conflitosPermitidos.some(par => {
+                                const [id1, id2] = par;
+                                return (id1 === funcaoId || id2 === funcaoId);
+                            });
+                            return podeConflitar;
+                        }
+                        return true;
+                    });
+                    
+                    pessoasDisponiveis.sort((a, b) => {
+                        const contagemA = contadores[funcaoId][a];
+                        const contagemB = contadores[funcaoId][b];
+                        if (contagemA !== contagemB) return contagemA - contagemB;
+                        
+                        const ultimaA = ultimasDesignacoes[funcaoId][a];
+                        const ultimaB = ultimasDesignacoes[funcaoId][b];
+                        return ultimaA - ultimaB;
+                    });
+                    
+                    const pessoaSelecionada = pessoasDisponiveis[0];
+                    distribuicao[data].pessoas[funcaoId] = pessoaSelecionada;
+                    contadores[funcaoId][pessoaSelecionada]++;
+                    ultimasDesignacoes[funcaoId][pessoaSelecionada] = indiceData;
+                    pessoasUsadasNaData.add(pessoaSelecionada);
+                });
+            });
+            
+            return distribuicao;
+        }
+
+        function exibirEscala(escala) {
+            const container = document.getElementById('tabelaEscala');
+            
+            let html = '<table class="w-full text-sm"><thead class="bg-cyan-900/50"><tr>';
+            html += '<th class="p-3 text-left text-cyan-400 sticky left-0 bg-cyan-900/50">Data</th>';
+            
+            // Colunas fixas primeiro
+            if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                escala.colunasFixas.forEach(coluna => {
+                    html += `<th class="p-3 text-center text-green-400">📌 ${coluna.nome}</th>`;
+                });
+            }
+            
+            // Depois as funções regulares
+            escala.funcoes.forEach(funcao => {
+                html += `<th class="p-3 text-center text-cyan-400">${funcao.nome}</th>`;
+            });
+            
+            html += '</tr></thead><tbody>';
+            
+            escala.datas.forEach((dataObj, index) => {
+                const data = dataObj.data;
+                const excluida = dataObj.excluida;
+                const bgRow = index % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-800/10';
+                
+                html += `<tr class="${bgRow} escala-linha">`;
+                html += `<td class="p-3 text-white font-semibold sticky left-0 ${bgRow}">${formatarData(data)}</td>`;
+                
+                if (excluida) {
+                    const colspan = (escala.colunasFixas ? escala.colunasFixas.length : 0) + escala.funcoes.length;
+                    html += `<td colspan="${colspan}" class="p-3 text-center text-yellow-400 italic edit-cell" onclick="reativarData('${data}')">Data Excluída (clique para reativar)</td>`;
+                } else {
+                    // Colunas fixas primeiro
+                    if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                        escala.colunasFixas.forEach(coluna => {
+                            const valor = escala.distribuicao[data].colunasFixas?.[coluna.id] || '';
+                            html += `<td class="p-3 text-center text-green-300 edit-cell" onclick="editarColunaFixaGerada('${data}', ${coluna.id})">${valor || '(vazio)'}</td>`;
+                        });
+                    }
+                    
+                    // Depois as funções regulares
+                    escala.funcoes.forEach(funcao => {
+                        const pessoa = escala.distribuicao[data].pessoas[funcao.id];
+                        html += `<td class="p-3 text-center text-gray-300">${pessoa}</td>`;
+                    });
+                }
+                
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            
+            container.innerHTML = html;
+            document.getElementById('resultadoEscala').classList.remove('hidden');
+            
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function reativarData(data) {
+            if (!escalaAtual) return;
+            
+            if (confirm(`Reativar a data ${formatarData(data)} e gerar designações?`)) {
+                const dataObj = escalaAtual.datas.find(d => d.data === data);
+                if (dataObj) {
+                    dataObj.excluida = false;
+                    
+                    // Regenerar distribuição apenas para esta data
+                    const funcoesIds = escalaAtual.funcoes.map(f => f.id);
+                    const pessoasUsadasNaData = new Set();
+                    
+                    escalaAtual.distribuicao[data] = {
+                        excluida: false,
+                        pessoas: {},
+                        colunasFixas: {}
+                    };
+                    
+                    funcoesIds.forEach(funcaoId => {
+                        const funcao = funcoes.find(f => f.id === funcaoId);
+                        const pessoasDisponiveis = funcao.pessoas.filter(p => !pessoasUsadasNaData.has(p));
+                        
+                        if (pessoasDisponiveis.length > 0) {
+                            const pessoaSelecionada = pessoasDisponiveis[Math.floor(Math.random() * pessoasDisponiveis.length)];
+                            escalaAtual.distribuicao[data].pessoas[funcaoId] = pessoaSelecionada;
+                            pessoasUsadasNaData.add(pessoaSelecionada);
+                        }
+                    });
+                    
+                    exibirEscala(escalaAtual);
+                }
+            }
+        }
+
+        function editarColunaFixaGerada(data, colunaId) {
+            if (!escalaAtual) return;
+            
+            const coluna = escalaAtual.colunasFixas.find(c => c.id === colunaId);
+            if (!coluna) return;
+            
+            // Criar lista de todas as pessoas cadastradas + opção de texto livre
+            let todasPessoas = new Set();
+            funcoes.forEach(funcao => {
+                funcao.pessoas.forEach(pessoa => todasPessoas.add(pessoa));
+            });
+            
+            const valorAtual = escalaAtual.distribuicao[data].colunasFixas?.[colunaId] || '';
+            
+            const opcoes = Array.from(todasPessoas).sort();
+            let html = `
+                <div style="background: #1a202c; padding: 20px; border-radius: 8px; max-width: 500px;">
+                    <h3 style="color: white; margin-bottom: 10px;">${coluna.nome} - ${formatarData(data)}</h3>
+                    <p style="color: #9ca3af; font-size: 12px; margin-bottom: 15px;">Selecione uma pessoa ou digite/cole um nome:</p>
+                    <select id="selectPessoaFixa" style="width: 100%; padding: 8px; margin-bottom: 10px; background: #2d3748; color: white; border: 1px solid #06b6d4; border-radius: 4px;">
+                        <option value="">-- Digite ou cole abaixo --</option>
+                        ${opcoes.map(p => `<option value="${p}"${p === valorAtual ? ' selected' : ''}>${p}</option>`).join('')}
+                    </select>
+                    <textarea id="inputTextoLivreFixa" rows="4" placeholder="Digite um nome ou cole uma lista (um nome por linha)" style="width: 100%; padding: 8px; background: #2d3748; color: white; border: 1px solid #06b6d4; border-radius: 4px; margin-bottom: 10px; resize: vertical; font-family: inherit;">${valorAtual}</textarea>
+                    <p style="color: #34d399; font-size: 11px; margin-bottom: 15px;">💡 Dica: Cole uma lista do Excel! Um nome por linha preencherá automaticamente as datas seguintes.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="salvarColunaFixa('${data}', ${colunaId})" style="flex: 1; padding: 8px; background: #06b6d4; color: white; border: none; border-radius: 4px; cursor: pointer;">Salvar</button>
+                        <button onclick="fecharModalColunaFixa()" style="flex: 1; padding: 8px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                    </div>
+                </div>
+            `;
+            
+            const modal = document.createElement('div');
+            modal.id = 'modalColunaFixa';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+            
+            document.getElementById('selectPessoaFixa').onchange = function() {
+                if (this.value) {
+                    document.getElementById('inputTextoLivreFixa').value = this.value;
+                }
+            };
+        }
+
+        function salvarColunaFixa(data, colunaId) {
+            const textoCompleto = document.getElementById('inputTextoLivreFixa').value.trim();
+            
+            if (!textoCompleto) {
+                // Apenas limpar esta célula
+                if (!escalaAtual.distribuicao[data].colunasFixas) {
+                    escalaAtual.distribuicao[data].colunasFixas = {};
+                }
+                escalaAtual.distribuicao[data].colunasFixas[colunaId] = '';
+                fecharModalColunaFixa();
+                
+                // Verificar se ainda está em modo parcial ou completo
+                if (escalaAtual.geracaoCompleta) {
+                    exibirEscala(escalaAtual);
+                } else {
+                    exibirEscalaParcial(escalaAtual);
+                }
+                return;
+            }
+            
+            // Verificar se há múltiplas linhas (lista colada)
+            const linhas = textoCompleto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
+            if (linhas.length === 1) {
+                // Apenas um nome - comportamento normal
+                if (!escalaAtual.distribuicao[data].colunasFixas) {
+                    escalaAtual.distribuicao[data].colunasFixas = {};
+                }
+                escalaAtual.distribuicao[data].colunasFixas[colunaId] = linhas[0];
+                fecharModalColunaFixa();
+                
+                if (escalaAtual.geracaoCompleta) {
+                    exibirEscala(escalaAtual);
+                } else {
+                    exibirEscalaParcial(escalaAtual);
+                }
+            } else {
+                // Múltiplas linhas - preencher automaticamente a partir desta data
+                const confirmacao = confirm(
+                    `📋 Lista detectada!\n\n` +
+                    `Você colou ${linhas.length} nomes.\n\n` +
+                    `Deseja preencher automaticamente as datas seguintes?\n\n` +
+                    `• Começando em: ${formatarData(data)}\n` +
+                    `• Pulará datas excluídas\n` +
+                    `• Preencherá ${linhas.length} datas`
+                );
+                
+                if (confirmacao) {
+                    preencherColunaFixaEmLote(data, colunaId, linhas);
+                    fecharModalColunaFixa();
+                    
+                    if (escalaAtual.geracaoCompleta) {
+                        exibirEscala(escalaAtual);
+                    } else {
+                        exibirEscalaParcial(escalaAtual);
+                    }
+                    alert(`✅ ${linhas.length} nomes inseridos com sucesso!`);
+                } else {
+                    // Apenas inserir o primeiro nome
+                    if (!escalaAtual.distribuicao[data].colunasFixas) {
+                        escalaAtual.distribuicao[data].colunasFixas = {};
+                    }
+                    escalaAtual.distribuicao[data].colunasFixas[colunaId] = linhas[0];
+                    fecharModalColunaFixa();
+                    
+                    if (escalaAtual.geracaoCompleta) {
+                        exibirEscala(escalaAtual);
+                    } else {
+                        exibirEscalaParcial(escalaAtual);
+                    }
+                }
+            }
+        }
+
+        function preencherColunaFixaEmLote(dataInicio, colunaId, nomes) {
+            // Encontrar o índice da data de início
+            const indiceInicio = escalaAtual.datas.findIndex(d => d.data === dataInicio);
+            if (indiceInicio === -1) return;
+            
+            let indiceNome = 0;
+            
+            // Percorrer as datas a partir do ponto inicial
+            for (let i = indiceInicio; i < escalaAtual.datas.length && indiceNome < nomes.length; i++) {
+                const dataObj = escalaAtual.datas[i];
+                const dataAtual = dataObj.data;
+                const excluida = dataObj.excluida;
+                
+                // Pular datas excluídas
+                if (excluida) {
+                    continue;
+                }
+                
+                // Inicializar se necessário
+                if (!escalaAtual.distribuicao[dataAtual].colunasFixas) {
+                    escalaAtual.distribuicao[dataAtual].colunasFixas = {};
+                }
+                
+                // Inserir o nome
+                escalaAtual.distribuicao[dataAtual].colunasFixas[colunaId] = nomes[indiceNome];
+                indiceNome++;
+            }
+        }
+
+        function fecharModalColunaFixa() {
+            const modal = document.getElementById('modalColunaFixa');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function salvarEscalaGerada() {
+            if (!escalaAtual) {
+                alert('Nenhuma escala gerada!');
+                return;
+            }
+            
+            const nome = prompt('Digite um nome para esta escala:');
+            if (!nome) return;
+            
+            const novaEscala = {
+                id: Date.now(),
+                nome: nome,
+                dataGeracao: new Date().toISOString(),
+                ...escalaAtual
+            };
+            
+            escalas.push(novaEscala);
+            salvarDados();
+            
+            alert('Escala salva com sucesso!');
+        }
+
+        function exportarExcel() {
+            if (!escalaAtual) {
+                alert('Nenhuma escala para exportar!');
+                return;
+            }
+            
+            const dados = [['Data']];
+            
+            // Colunas fixas primeiro
+            if (escalaAtual.colunasFixas && escalaAtual.colunasFixas.length > 0) {
+                escalaAtual.colunasFixas.forEach(coluna => {
+                    dados[0].push(coluna.nome);
+                });
+            }
+            
+            // Depois as funções
+            escalaAtual.funcoes.forEach(funcao => {
+                dados[0].push(funcao.nome);
+            });
+            
+            escalaAtual.datas.forEach(dataObj => {
+                const data = dataObj.data;
+                const excluida = dataObj.excluida;
+                
+                const linha = [formatarData(data)];
+                
+                if (excluida) {
+                    // Colunas fixas
+                    if (escalaAtual.colunasFixas && escalaAtual.colunasFixas.length > 0) {
+                        escalaAtual.colunasFixas.forEach(() => {
+                            linha.push('Data Excluída');
+                        });
+                    }
+                    // Funções
+                    escalaAtual.funcoes.forEach(() => {
+                        linha.push('Data Excluída');
+                    });
+                } else {
+                    // Colunas fixas primeiro
+                    if (escalaAtual.colunasFixas && escalaAtual.colunasFixas.length > 0) {
+                        escalaAtual.colunasFixas.forEach(coluna => {
+                            const dist = escalaAtual.distribuicao[data];
+                            const valor = (dist.colunasFixas && dist.colunasFixas[coluna.id]) ? dist.colunasFixas[coluna.id] : '';
+                            linha.push(valor);
+                        });
+                    }
+                    
+                    // Depois as funções
+                    escalaAtual.funcoes.forEach(funcao => {
+                        linha.push(escalaAtual.distribuicao[data].pessoas[funcao.id] || '');
+                    });
+                }
+                
+                dados.push(linha);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Escala');
+            
+            XLSX.writeFile(wb, 'escala.xlsx');
+        }
+
+        function exportarArquivosIndividuais() {
+            if (!escalaAtual) {
+                alert('Nenhuma escala para exportar!');
+                return;
+            }
+            
+            // Coletar todas as pessoas e suas atividades
+            const atividadesPorPessoa = {};
+            
+            escalaAtual.datas.forEach(dataObj => {
+                const data = dataObj.data;
+                const excluida = dataObj.excluida;
+                
+                if (excluida) return; // Pular datas excluídas
+                
+                // Processar funções regulares
+                escalaAtual.funcoes.forEach(funcao => {
+                    const pessoa = escalaAtual.distribuicao[data].pessoas[funcao.id];
+                    if (pessoa && pessoa.trim() !== '') {
+                        if (!atividadesPorPessoa[pessoa]) {
+                            atividadesPorPessoa[pessoa] = [];
+                        }
+                        atividadesPorPessoa[pessoa].push({
+                            data: data,
+                            atividade: funcao.nome
+                        });
+                    }
+                });
+                
+                // Processar colunas fixas (apenas se forem pessoas cadastradas)
+                if (escalaAtual.colunasFixas && escalaAtual.colunasFixas.length > 0) {
+                    escalaAtual.colunasFixas.forEach(coluna => {
+                        const dist = escalaAtual.distribuicao[data];
+                        const pessoa = (dist.colunasFixas && dist.colunasFixas[coluna.id]) ? dist.colunasFixas[coluna.id] : '';
+                        
+                        if (pessoa && pessoa.trim() !== '') {
+                            // Verificar se essa pessoa está cadastrada em alguma função
+                            const pessoaExiste = escalaAtual.funcoes.some(funcao => 
+                                funcao.pessoas.some(p => p.toLowerCase() === pessoa.toLowerCase())
+                            );
+                            
+                            // Incluir mesmo que não esteja cadastrada (pode ser convidado externo)
+                            if (!atividadesPorPessoa[pessoa]) {
+                                atividadesPorPessoa[pessoa] = [];
+                            }
+                            atividadesPorPessoa[pessoa].push({
+                                data: data,
+                                atividade: coluna.nome
+                            });
+                        }
+                    });
+                }
+            });
+            
+            // Ordenar atividades por data para cada pessoa
+            Object.keys(atividadesPorPessoa).forEach(pessoa => {
+                atividadesPorPessoa[pessoa].sort((a, b) => a.data.localeCompare(b.data));
+            });
+            
+            // Gerar arquivos TXT
+            const totalPessoas = Object.keys(atividadesPorPessoa).length;
+            if (totalPessoas === 0) {
+                alert('Nenhuma atividade encontrada para gerar arquivos!');
+                return;
+            }
+            
+            let conteudosGerados = [];
+            
+            Object.keys(atividadesPorPessoa).sort().forEach(pessoa => {
+                let conteudo = pessoa + '\n';
+                
+                atividadesPorPessoa[pessoa].forEach(item => {
+                    conteudo += formatarData(item.data) + ' ' + item.atividade + '\n';
+                });
+                
+                conteudosGerados.push({
+                    nome: pessoa,
+                    conteudo: conteudo.trim()
+                });
+            });
+            
+            // Mostrar preview e opções
+            mostrarPreviewArquivosIndividuais(conteudosGerados);
+        }
+
+        function mostrarPreviewArquivosIndividuais(conteudos) {
+            let html = `
+                <div style="background: #1a202c; padding: 25px; border-radius: 8px; max-width: 700px; max-height: 80vh; overflow-y: auto;">
+                    <h3 style="color: white; margin-bottom: 15px; font-size: 20px;">📄 Arquivos Individuais Gerados</h3>
+                    <p style="color: #9ca3af; margin-bottom: 20px;">Total: ${conteudos.length} arquivo(s)</p>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; background: #2d3748; border-radius: 6px; max-height: 400px; overflow-y: auto;">
+            `;
+            
+            conteudos.forEach((item, index) => {
+                html += `
+                    <div style="margin-bottom: 15px; padding: 12px; background: #374151; border-radius: 4px; border-left: 4px solid #8b5cf6;">
+                        <div style="color: #a78bfa; font-weight: 600; margin-bottom: 8px;">${item.nome}</div>
+                        <pre style="color: #d1d5db; font-size: 13px; white-space: pre-wrap; margin: 0; font-family: monospace;">${item.conteudo}</pre>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="baixarTodosArquivosIndividuais()" style="flex: 1; padding: 10px; background: #8b5cf6; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+                            💾 Baixar Todos os Arquivos
+                        </button>
+                        <button onclick="fecharPreviewIndividual()" style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            const modal = document.createElement('div');
+            modal.id = 'modalPreviewIndividual';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+            
+            // Armazenar conteúdos para download
+            window.conteudosArquivosIndividuais = conteudos;
+        }
+
+        function baixarTodosArquivosIndividuais() {
+            if (!window.conteudosArquivosIndividuais) return;
+            
+            window.conteudosArquivosIndividuais.forEach(item => {
+                const blob = new Blob([item.conteudo], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${item.nome}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+            
+            fecharPreviewIndividual();
+            alert(`✅ ${window.conteudosArquivosIndividuais.length} arquivo(s) baixado(s) com sucesso!`);
+        }
+
+        function fecharPreviewIndividual() {
+            const modal = document.getElementById('modalPreviewIndividual');
+            if (modal) {
+                modal.remove();
+            }
+            window.conteudosArquivosIndividuais = null;
+        }
+
+        function exportarArquivosIndividuaisSalva() {
+            if (!escalaAtual) {
+                alert('Nenhuma escala para exportar!');
+                return;
+            }
+            
+            const dados = [['Data']];
+            
+            // Colunas fixas primeiro
+            if (escalaAtual.colunasFixas && escalaAtual.colunasFixas.length > 0) {
+                escalaAtual.colunasFixas.forEach(coluna => {
+                    dados[0].push(coluna.nome);
+                });
+            }
+            
+            // Depois as funções
+            escalaAtual.funcoes.forEach(funcao => {
+                dados[0].push(funcao.nome);
+            });
+            
+            escalaAtual.datas.forEach(dataObj => {
+                const data = dataObj.data;
+                const excluida = dataObj.excluida;
+                
+                const linha = [formatarData(data)];
+                
+                if (excluida) {
+                    // Colunas fixas
+                    if (escalaAtual.colunasFixas && escalaAtual.colunasFixas.length > 0) {
+                        escalaAtual.colunasFixas.forEach(() => {
+                            linha.push('Data Excluída');
+                        });
+                    }
+                    // Funções
+                    escalaAtual.funcoes.forEach(() => {
+                        linha.push('Data Excluída');
+                    });
+                } else {
+                    // Colunas fixas primeiro
+                    if (escalaAtual.colunasFixas && escalaAtual.colunasFixas.length > 0) {
+                        escalaAtual.colunasFixas.forEach(coluna => {
+                            const dist = escalaAtual.distribuicao[data];
+                            const valor = (dist.colunasFixas && dist.colunasFixas[coluna.id]) ? dist.colunasFixas[coluna.id] : '';
+                            linha.push(valor);
+                        });
+                    }
+                    
+                    // Depois as funções
+                    escalaAtual.funcoes.forEach(funcao => {
+                        linha.push(escalaAtual.distribuicao[data].pessoas[funcao.id] || '');
+                    });
+                }
+                
+                dados.push(linha);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Escala');
+            
+            XLSX.writeFile(wb, 'escala.xlsx');
+        }
+
+        // ===== ESCALAS SALVAS =====
+        function atualizarListaEscalasSalvas() {
+            const container = document.getElementById('listaEscalasSalvas');
+            
+            if (escalas.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-6xl mb-4">📂</div>
+                        <p class="text-gray-400">Nenhuma escala salva ainda</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+            
+            escalas.forEach(escala => {
+                const dataGeracao = new Date(escala.dataGeracao).toLocaleString('pt-BR');
+                html += `
+                    <div class="p-4 bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-700 transition" onclick="visualizarEscalaSalva(${escala.id})">
+                        <h4 class="font-bold text-white mb-2">${escala.nome}</h4>
+                        <p class="text-xs text-gray-400">Gerada em: ${dataGeracao}</p>
+                        <p class="text-xs text-gray-400">Período: ${formatarData(escala.dataInicio)} a ${formatarData(escala.dataFim)}</p>
+                        <p class="text-xs text-cyan-400 mt-2">${escala.datas.length} datas • ${escala.funcoes.length} funções</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function visualizarEscalaSalva(id) {
+            escalaVisualizandoId = id;
+            const escala = escalas.find(e => e.id === id);
+            if (!escala) return;
+            
+            document.getElementById('tituloEscalaVisualizada').textContent = escala.nome;
+            
+            const container = document.getElementById('tabelaEscalaSalva');
+            
+            let html = '<table class="w-full text-sm"><thead class="bg-cyan-900/50"><tr>';
+            html += '<th class="p-3 text-left text-cyan-400 sticky left-0 bg-cyan-900/50">Data</th>';
+            
+            // Colunas fixas primeiro
+            if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                escala.colunasFixas.forEach(coluna => {
+                    html += `<th class="p-3 text-center text-green-400">📌 ${coluna.nome}</th>`;
+                });
+            }
+            
+            // Depois as funções
+            escala.funcoes.forEach(funcao => {
+                html += `<th class="p-3 text-center text-cyan-400">${funcao.nome}</th>`;
+            });
+            
+            html += '</tr></thead><tbody>';
+            
+            escala.datas.forEach((dataObj, index) => {
+                const data = typeof dataObj === 'string' ? dataObj : dataObj.data;
+                const excluida = typeof dataObj === 'object' ? dataObj.excluida : false;
+                
+                const bgRow = index % 2 === 0 ? 'bg-gray-800/30' : 'bg-gray-800/10';
+                html += `<tr class="${bgRow} escala-linha">`;
+                html += `<td class="p-3 text-white font-semibold sticky left-0 ${bgRow}">${formatarData(data)}</td>`;
+                
+                if (excluida) {
+                    const colspan = (escala.colunasFixas ? escala.colunasFixas.length : 0) + escala.funcoes.length;
+                    html += `<td colspan="${colspan}" class="p-3 text-center text-yellow-400 italic edit-cell" onclick="reativarDataSalva('${data}')">Data Excluída (clique para reativar)</td>`;
+                } else {
+                    // Colunas fixas primeiro
+                    if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                        escala.colunasFixas.forEach(coluna => {
+                            const dist = escala.distribuicao[data];
+                            const valor = (dist.colunasFixas && dist.colunasFixas[coluna.id]) ? dist.colunasFixas[coluna.id] : '';
+                            html += `<td class="p-3 text-center text-green-300 edit-cell" onclick="editarColunaFixaSalva('${data}', ${coluna.id})">${valor || '(vazio)'}</td>`;
+                        });
+                    }
+                    
+                    // Depois as funções
+                    escala.funcoes.forEach(funcao => {
+                        // Compatibilidade com formato antigo e novo
+                        const pessoa = escala.distribuicao[data].pessoas 
+                            ? escala.distribuicao[data].pessoas[funcao.id] 
+                            : escala.distribuicao[data][funcao.id];
+                        html += `<td class="p-3 text-center text-gray-300 edit-cell" onclick="editarCelula('${data}', ${funcao.id})">${pessoa}</td>`;
+                    });
+                }
+                
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            
+            container.innerHTML = html;
+            
+            document.getElementById('listaEscalasSalvas').classList.add('hidden');
+            document.getElementById('visualizarEscala').classList.remove('hidden');
+        }
+
+        function reativarDataSalva(data) {
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            if (!escala) return;
+            
+            if (confirm(`Reativar a data ${formatarData(data)} e gerar designações?`)) {
+                const dataObj = escala.datas.find(d => (typeof d === 'string' ? d : d.data) === data);
+                if (dataObj && typeof dataObj === 'object') {
+                    dataObj.excluida = false;
+                    
+                    // Regenerar distribuição para esta data
+                    const funcoesIds = escala.funcoes.map(f => f.id);
+                    const pessoasUsadasNaData = new Set();
+                    
+                    escala.distribuicao[data] = {
+                        excluida: false,
+                        pessoas: {},
+                        colunasFixas: {}
+                    };
+                    
+                    funcoesIds.forEach(funcaoId => {
+                        const funcao = funcoes.find(f => f.id === funcaoId);
+                        if (funcao) {
+                            const pessoasDisponiveis = funcao.pessoas.filter(p => !pessoasUsadasNaData.has(p));
+                            
+                            if (pessoasDisponiveis.length > 0) {
+                                const pessoaSelecionada = pessoasDisponiveis[Math.floor(Math.random() * pessoasDisponiveis.length)];
+                                escala.distribuicao[data].pessoas[funcaoId] = pessoaSelecionada;
+                                pessoasUsadasNaData.add(pessoaSelecionada);
+                            }
+                        }
+                    });
+                    
+                    salvarDados();
+                    visualizarEscalaSalva(escalaVisualizandoId);
+                }
+            }
+        }
+
+        function editarColunaFixaSalva(data, colunaId) {
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            if (!escala) return;
+            
+            const coluna = escala.colunasFixas.find(c => c.id === colunaId);
+            if (!coluna) return;
+            
+            // Criar lista de todas as pessoas cadastradas
+            let todasPessoas = new Set();
+            funcoes.forEach(funcao => {
+                funcao.pessoas.forEach(pessoa => todasPessoas.add(pessoa));
+            });
+            
+            const dist = escala.distribuicao[data];
+            const valorAtual = (dist.colunasFixas && dist.colunasFixas[colunaId]) ? dist.colunasFixas[colunaId] : '';
+            
+            const opcoes = Array.from(todasPessoas).sort();
+            let html = `
+                <div style="background: #1a202c; padding: 20px; border-radius: 8px; max-width: 500px;">
+                    <h3 style="color: white; margin-bottom: 10px;">${coluna.nome} - ${formatarData(data)}</h3>
+                    <p style="color: #9ca3af; font-size: 12px; margin-bottom: 15px;">Selecione uma pessoa ou digite/cole um nome:</p>
+                    <select id="selectPessoaFixaSalva" style="width: 100%; padding: 8px; margin-bottom: 10px; background: #2d3748; color: white; border: 1px solid #06b6d4; border-radius: 4px;">
+                        <option value="">-- Digite ou cole abaixo --</option>
+                        ${opcoes.map(p => `<option value="${p}"${p === valorAtual ? ' selected' : ''}>${p}</option>`).join('')}
+                    </select>
+                    <textarea id="inputTextoLivreFixaSalva" rows="4" placeholder="Digite um nome ou cole uma lista (um nome por linha)" style="width: 100%; padding: 8px; background: #2d3748; color: white; border: 1px solid #06b6d4; border-radius: 4px; margin-bottom: 10px; resize: vertical; font-family: inherit;">${valorAtual}</textarea>
+                    <p style="color: #34d399; font-size: 11px; margin-bottom: 15px;">💡 Dica: Cole uma lista do Excel! Um nome por linha preencherá automaticamente as datas seguintes.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="salvarColunaFixaSalva('${data}', ${colunaId})" style="flex: 1; padding: 8px; background: #06b6d4; color: white; border: none; border-radius: 4px; cursor: pointer;">Salvar</button>
+                        <button onclick="fecharModalColunaFixaSalva()" style="flex: 1; padding: 8px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                    </div>
+                </div>
+            `;
+            
+            const modal = document.createElement('div');
+            modal.id = 'modalColunaFixaSalva';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+            
+            document.getElementById('selectPessoaFixaSalva').onchange = function() {
+                if (this.value) {
+                    document.getElementById('inputTextoLivreFixaSalva').value = this.value;
+                }
+            };
+        }
+
+        function salvarColunaFixaSalva(data, colunaId) {
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            const textoCompleto = document.getElementById('inputTextoLivreFixaSalva').value.trim();
+            
+            if (!textoCompleto) {
+                // Limpar célula
+                if (!escala.distribuicao[data].colunasFixas) {
+                    escala.distribuicao[data].colunasFixas = {};
+                }
+                escala.distribuicao[data].colunasFixas[colunaId] = '';
+                salvarDados();
+                fecharModalColunaFixaSalva();
+                visualizarEscalaSalva(escalaVisualizandoId);
+                return;
+            }
+            
+            // Verificar se há múltiplas linhas (lista colada)
+            const linhas = textoCompleto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            
+            if (linhas.length === 1) {
+                // Apenas um nome
+                if (!escala.distribuicao[data].colunasFixas) {
+                    escala.distribuicao[data].colunasFixas = {};
+                }
+                escala.distribuicao[data].colunasFixas[colunaId] = linhas[0];
+                salvarDados();
+                fecharModalColunaFixaSalva();
+                visualizarEscalaSalva(escalaVisualizandoId);
+            } else {
+                // Múltiplas linhas - preencher em lote
+                const confirmacao = confirm(
+                    `📋 Lista detectada!\n\n` +
+                    `Você colou ${linhas.length} nomes.\n\n` +
+                    `Deseja preencher automaticamente as datas seguintes?\n\n` +
+                    `• Começando em: ${formatarData(data)}\n` +
+                    `• Pulará datas excluídas\n` +
+                    `• Preencherá ${linhas.length} datas`
+                );
+                
+                if (confirmacao) {
+                    preencherColunaFixaSalvaEmLote(data, colunaId, linhas);
+                    salvarDados();
+                    fecharModalColunaFixaSalva();
+                    visualizarEscalaSalva(escalaVisualizandoId);
+                    alert(`✅ ${linhas.length} nomes inseridos com sucesso!`);
+                } else {
+                    // Apenas o primeiro
+                    if (!escala.distribuicao[data].colunasFixas) {
+                        escala.distribuicao[data].colunasFixas = {};
+                    }
+                    escala.distribuicao[data].colunasFixas[colunaId] = linhas[0];
+                    salvarDados();
+                    fecharModalColunaFixaSalva();
+                    visualizarEscalaSalva(escalaVisualizandoId);
+                }
+            }
+        }
+
+        function preencherColunaFixaSalvaEmLote(dataInicio, colunaId, nomes) {
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            if (!escala) return;
+            
+            // Encontrar o índice da data de início
+            const indiceInicio = escala.datas.findIndex(d => {
+                const dataAtual = typeof d === 'string' ? d : d.data;
+                return dataAtual === dataInicio;
+            });
+            
+            if (indiceInicio === -1) return;
+            
+            let indiceNome = 0;
+            
+            // Percorrer as datas a partir do ponto inicial
+            for (let i = indiceInicio; i < escala.datas.length && indiceNome < nomes.length; i++) {
+                const dataObj = escala.datas[i];
+                const dataAtual = typeof dataObj === 'string' ? dataObj : dataObj.data;
+                const excluida = typeof dataObj === 'object' ? dataObj.excluida : false;
+                
+                // Pular datas excluídas
+                if (excluida) {
+                    continue;
+                }
+                
+                // Inicializar se necessário
+                if (!escala.distribuicao[dataAtual].colunasFixas) {
+                    escala.distribuicao[dataAtual].colunasFixas = {};
+                }
+                
+                // Inserir o nome
+                escala.distribuicao[dataAtual].colunasFixas[colunaId] = nomes[indiceNome];
+                indiceNome++;
+            }
+        }
+
+        function fecharModalColunaFixaSalva() {
+            const modal = document.getElementById('modalColunaFixaSalva');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function voltarListaEscalas() {
+            document.getElementById('visualizarEscala').classList.add('hidden');
+            document.getElementById('listaEscalasSalvas').classList.remove('hidden');
+            escalaVisualizandoId = null;
+        }
+
+        function editarCelula(data, funcaoId) {
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            if (!escala) return;
+            
+            const funcao = escala.funcoes.find(f => f.id === funcaoId);
+            const pessoaAtual = escala.distribuicao[data].pessoas ? escala.distribuicao[data].pessoas[funcaoId] : escala.distribuicao[data][funcaoId];
+            
+            let html = `
+                <div style="background: #1a202c; padding: 20px; border-radius: 8px; max-width: 400px;">
+                    <h3 style="color: white; margin-bottom: 10px;">${funcao.nome} - ${formatarData(data)}</h3>
+                    <p style="color: #9ca3af; font-size: 12px; margin-bottom: 15px;">Pessoa atual: ${pessoaAtual}</p>
+                    <select id="selectNovaPessoa" style="width: 100%; padding: 10px; background: #2d3748; color: white; border: 1px solid #06b6d4; border-radius: 4px; margin-bottom: 15px;">
+                        ${funcao.pessoas.map(p => `<option value="${p}"${p === pessoaAtual ? ' selected' : ''}>${p}</option>`).join('')}
+                    </select>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="salvarEdicaoCelula('${data}', ${funcaoId})" style="flex: 1; padding: 10px; background: #06b6d4; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Salvar</button>
+                        <button onclick="fecharModal()" style="flex: 1; padding: 10px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+                    </div>
+                </div>
+            `;
+            
+            const modal = document.createElement('div');
+            modal.id = 'modalEdicao';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+            modal.innerHTML = html;
+            document.body.appendChild(modal);
+        }
+
+        function salvarEdicaoCelula(data, funcaoId) {
+            const novaPessoa = document.getElementById('selectNovaPessoa').value;
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            
+            if (escala.distribuicao[data].pessoas) {
+                escala.distribuicao[data].pessoas[funcaoId] = novaPessoa;
+            } else {
+                escala.distribuicao[data][funcaoId] = novaPessoa;
+            }
+            
+            salvarDados();
+            fecharModal();
+            visualizarEscalaSalva(escalaVisualizandoId);
+        }
+
+        function fecharModal() {
+            const modal = document.getElementById('modalEdicao');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        function exportarArquivosIndividuaisSalva() {
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            if (!escala) {
+                alert('Nenhuma escala para exportar!');
+                return;
+            }
+            
+            // Coletar todas as pessoas e suas atividades
+            const atividadesPorPessoa = {};
+            
+            escala.datas.forEach(dataObj => {
+                const data = typeof dataObj === 'string' ? dataObj : dataObj.data;
+                const excluida = typeof dataObj === 'object' ? dataObj.excluida : false;
+                
+                if (excluida) return; // Pular datas excluídas
+                
+                // Processar funções regulares
+                escala.funcoes.forEach(funcao => {
+                    const pessoa = escala.distribuicao[data].pessoas 
+                        ? escala.distribuicao[data].pessoas[funcao.id] 
+                        : escala.distribuicao[data][funcao.id];
+                    
+                    if (pessoa && pessoa.trim() !== '') {
+                        if (!atividadesPorPessoa[pessoa]) {
+                            atividadesPorPessoa[pessoa] = [];
+                        }
+                        atividadesPorPessoa[pessoa].push({
+                            data: data,
+                            atividade: funcao.nome
+                        });
+                    }
+                });
+                
+                // Processar colunas fixas
+                if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                    escala.colunasFixas.forEach(coluna => {
+                        const dist = escala.distribuicao[data];
+                        const pessoa = (dist.colunasFixas && dist.colunasFixas[coluna.id]) ? dist.colunasFixas[coluna.id] : '';
+                        
+                        if (pessoa && pessoa.trim() !== '') {
+                            if (!atividadesPorPessoa[pessoa]) {
+                                atividadesPorPessoa[pessoa] = [];
+                            }
+                            atividadesPorPessoa[pessoa].push({
+                                data: data,
+                                atividade: coluna.nome
+                            });
+                        }
+                    });
+                }
+            });
+            
+            // Ordenar atividades por data para cada pessoa
+            Object.keys(atividadesPorPessoa).forEach(pessoa => {
+                atividadesPorPessoa[pessoa].sort((a, b) => a.data.localeCompare(b.data));
+            });
+            
+            // Gerar arquivos TXT
+            const totalPessoas = Object.keys(atividadesPorPessoa).length;
+            if (totalPessoas === 0) {
+                alert('Nenhuma atividade encontrada para gerar arquivos!');
+                return;
+            }
+            
+            let conteudosGerados = [];
+            
+            Object.keys(atividadesPorPessoa).sort().forEach(pessoa => {
+                let conteudo = pessoa + '\n';
+                
+                atividadesPorPessoa[pessoa].forEach(item => {
+                    conteudo += formatarData(item.data) + ' ' + item.atividade + '\n';
+                });
+                
+                conteudosGerados.push({
+                    nome: pessoa,
+                    conteudo: conteudo.trim()
+                });
+            });
+            
+            // Mostrar preview e opções
+            mostrarPreviewArquivosIndividuais(conteudosGerados);
+        }
+
+        function exportarEscalaSalva() {
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            if (!escala) return;
+            
+            const dados = [['Data']];
+            
+            // Colunas fixas primeiro
+            if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                escala.colunasFixas.forEach(coluna => {
+                    dados[0].push(coluna.nome);
+                });
+            }
+            
+            // Depois as funções
+            escala.funcoes.forEach(funcao => {
+                dados[0].push(funcao.nome);
+            });
+            
+            escala.datas.forEach(dataObj => {
+                const data = typeof dataObj === 'string' ? dataObj : dataObj.data;
+                const excluida = typeof dataObj === 'object' ? dataObj.excluida : false;
+                
+                const linha = [formatarData(data)];
+                
+                if (excluida) {
+                    // Colunas fixas
+                    if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                        escala.colunasFixas.forEach(() => {
+                            linha.push('Data Excluída');
+                        });
+                    }
+                    // Funções
+                    escala.funcoes.forEach(() => {
+                        linha.push('Data Excluída');
+                    });
+                } else {
+                    // Colunas fixas primeiro
+                    if (escala.colunasFixas && escala.colunasFixas.length > 0) {
+                        escala.colunasFixas.forEach(coluna => {
+                            const dist = escala.distribuicao[data];
+                            const valor = (dist.colunasFixas && dist.colunasFixas[coluna.id]) ? dist.colunasFixas[coluna.id] : '';
+                            linha.push(valor);
+                        });
+                    }
+                    
+                    // Depois as funções
+                    escala.funcoes.forEach(funcao => {
+                        const pessoa = escala.distribuicao[data].pessoas 
+                            ? escala.distribuicao[data].pessoas[funcao.id] 
+                            : escala.distribuicao[data][funcao.id];
+                        linha.push(pessoa);
+                    });
+                }
+                
+                dados.push(linha);
+            });
+            
+            const ws = XLSX.utils.aoa_to_sheet(dados);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Escala');
+            
+            XLSX.writeFile(wb, `${escala.nome}.xlsx`);
+        }
+
+        function deletarEscalaSalva() {
+            if (!confirm('Tem certeza que deseja deletar esta escala?')) return;
+            
+            escalas = escalas.filter(e => e.id !== escalaVisualizandoId);
+            salvarDados();
+            voltarListaEscalas();
+            atualizarListaEscalasSalvas();
+        }
+
+        function modoEdicaoLivre() {
+            alert('Clique em qualquer célula da tabela para editar a pessoa designada.');
+        }
+
+        function regenerarAPartirDe() {
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            if (!escala) return;
+            
+            const dataInicio = prompt('Digite a data a partir da qual regenerar (formato: DD/MM/AAAA):');
+            if (!dataInicio) return;
+            
+            const [dia, mes, ano] = dataInicio.split('/');
+            const dataInicioISO = `${ano}-${mes}-${dia}`;
+            
+            const indice = escala.datas.findIndex(d => d >= dataInicioISO);
+            if (indice === -1) {
+                alert('Data não encontrada!');
+                return;
+            }
+            
+            const datasARegenerar = escala.datas.slice(indice);
+            const novaDistribuicao = distribuirPessoas(datasARegenerar, escala.funcoes.map(f => f.id));
+            
+            datasARegenerar.forEach(data => {
+                escala.distribuicao[data] = novaDistribuicao[data];
+            });
+            
+            salvarDados();
+            visualizarEscalaSalva(escalaVisualizandoId);
+            alert('Escala regenerada com sucesso!');
+        }
+
+        function regenerarTudo() {
+            if (!confirm('Regenerar toda a escala? Isso apagará as alterações manuais.')) return;
+            
+            const escala = escalas.find(e => e.id === escalaVisualizandoId);
+            if (!escala) return;
+            
+            const novaDistribuicao = distribuirPessoas(escala.datas, escala.funcoes.map(f => f.id));
+            escala.distribuicao = novaDistribuicao;
+            
+            salvarDados();
+            visualizarEscalaSalva(escalaVisualizandoId);
+            alert('Escala regenerada com sucesso!');
+        }
+
+        function adicionarPessoaNaEscala() {
+            alert('Para adicionar uma pessoa, vá em "Cadastros", edite a função desejada e adicione a pessoa. Depois volte aqui e regenere a escala.');
+        }
+
+        // ===== BACKUP/RESTAURAÇÃO =====
+        function exportarBackup() {
+            const dados = {
+                funcoes: funcoes,
+                escalas: escalas,
+                pessoas: pessoasCadastradas,
+                dataExport: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'sisescala_backup_' + new Date().toISOString().split('T')[0] + '.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importarBackup(event) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    if (dados.funcoes && dados.escalas) {
+                        funcoes = dados.funcoes;
+                        escalas = dados.escalas;
+                        pessoasCadastradas = dados.pessoas || [];
+                        salvarDados();
+                        atualizarListaPessoasCadastradas();
+                        atualizarListaFuncoes();
+                        atualizarListaEscalasSalvas();
+                        atualizarListaSelecionavelPessoas();
+                        alert('Backup importado com sucesso!');
+                    } else {
+                        alert('Arquivo inválido!');
+                    }
+                } catch (error) {
+                    alert('Erro ao importar arquivo!');
+                }
+            };
+            reader.readAsText(arquivo);
+            event.target.value = '';
+        }
+
+        function limparTodosDados() {
+            if (confirm('Apagar todos os dados? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem('sisEscala_funcoes');
+                localStorage.removeItem('sisEscala_escalas');
+                localStorage.removeItem('sisEscala_pessoas');
+                funcoes = [];
+                escalas = [];
+                pessoasCadastradas = [];
+                pessoasTemporarias = [];
+                datasExcluidas = [];
+                funcoesNaEscala = [];
+                conflitosPermitidos = [];
+                escalaAtual = null;
+                escalaVisualizandoId = null;
+                colunasFixas = [];
+                
+                atualizarListaPessoasCadastradas();
+                atualizarListaFuncoes();
+                atualizarListaEscalasSalvas();
+                
+                alert('Todos os dados foram apagados!');
+            }
+        }
+    </script>
+</body>
+</html>
